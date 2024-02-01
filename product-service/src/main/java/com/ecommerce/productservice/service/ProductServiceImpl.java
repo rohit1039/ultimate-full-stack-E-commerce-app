@@ -1,0 +1,389 @@
+package com.ecommerce.productservice.service;
+
+import com.ecommerce.productservice.exception.DuplicateProductException;
+import com.ecommerce.productservice.exception.ProductNotFoundException;
+import com.ecommerce.productservice.exception.UnAuthorizedException;
+import com.ecommerce.productservice.model.Product;
+import com.ecommerce.productservice.model.Size;
+import com.ecommerce.productservice.payload.request.ProductRequestDTO;
+import com.ecommerce.productservice.payload.response.ProductResponseDTO;
+import com.ecommerce.productservice.repository.ProductRepository;
+import com.ecommerce.productservice.util.MongoSequenceGenerator;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.FindAndReplaceOptions;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static com.ecommerce.productservice.config.RedisConfig.HASH_KEY;
+import static java.util.Objects.isNull;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+
+@Service
+@RequiredArgsConstructor
+public class ProductServiceImpl implements ProductService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ProductServiceImpl.class);
+
+	private final ProductRepository productRepository;
+
+	private final RestTemplate restTemplate;
+
+	private final MongoTemplate mongoTemplate;
+
+	private final RedisTemplate<String, ProductResponseDTO> redisTemplate;
+
+	private final ModelMapper modelMapper;
+
+	private final MongoSequenceGenerator mongoSequenceGenerator;
+
+	/**
+	 * This method is used to save the list of products to the database.
+	 * @param productRequest The product to be saved.
+	 * @param categoryId The id of the category to which the products belong.
+	 * @param username The username of the user.
+	 * @return The list of products saved to the database.
+	 * @throws Exception If the user does not have the required role or if the
+	 * authorization header is missing.
+	 */
+	@Override
+	@Caching(evict = { @CacheEvict(value = HASH_KEY, allEntries = true) })
+	public ProductResponseDTO saveProductToDB(ProductRequestDTO productRequest, Integer categoryId, String username,
+			String role) throws Exception {
+		// make a GET request to the category service to get the category
+		ResponseEntity<Object> categoryResponse = restTemplate
+			.getForEntity("http://category-service/categories/v1/get/{categoryId}", Object.class, categoryId);
+		// if the user's role is not admin, throw an exception
+		if (!isNull(role) && role.equals("ROLE_USER")) {
+			LOGGER.error("*** {} ***", "Role needs to be ADMIN to add a product");
+			throw new UnAuthorizedException("Requires ROLE_ADMIN to add a product");
+		}
+		// check if the product is unique
+		ProductResponseDTO productResponseDTO = null;
+		if (productIsUnique(productRequest.getProductName())) {
+			// map the product request DTO to a product object
+			Product product = modelMapper.map(productRequest, Product.class);
+			product.setCreatedAt(LocalDateTime.now());
+			product.setShortDescription(product.getShortDescription());
+			product.setProductId(mongoSequenceGenerator.generateSequence("productdb_sequences"));
+			if (categoryResponse.getStatusCode().is2xxSuccessful()) {
+				product.setProductCount(product.getProductCount());
+				product.setProductColor(product.getProductColor().toLowerCase());
+				product.setDiscountedPrice(product.getDiscountedPrice());
+				product.setTotalPrice(product.getTotalPrice());
+				product.setCategoryId(categoryId);
+				product.setExtraProductImages(productRequest.getExtraProductImages());
+				product.setProductMainImage(productRequest.getProductMainImage());
+				product.setEnabled(true);
+				product.setProductBrand(product.getProductBrand());
+				product.setUsername(username);
+				product.setInStock(product.isInStock());
+				// save the product to the database
+				Product productToSaveInDB = productRepository.save(product);
+				this.redisTemplate.opsForHash().put(HASH_KEY, productToSaveInDB.getProductId(), productToSaveInDB);
+				// map the saved product to a product response DTO
+				ProductResponseDTO productToDTO = modelMapper.map(productToSaveInDB, ProductResponseDTO.class);
+				LOGGER.info("*** {} ***", "Product Saved Successfully");
+				productToDTO.setShortDescription(productToDTO.getShortDescription());
+				productResponseDTO = this.modelMapper.map(productToDTO, ProductResponseDTO.class);
+			}
+		}
+		else {
+			// if the product is not unique, throw a duplicate product exception
+			throw new DuplicateProductException("Products cannot be duplicated");
+		}
+		// return the product response
+		return productResponseDTO;
+
+	}
+
+	/**
+	 * This method is used to get a product by its id.
+	 * @param productId The id of the product to be retrieved.
+	 * @return The product with the given id.
+	 */
+	@Override
+	@Cacheable(value = HASH_KEY, key = "#productId")
+	public ProductResponseDTO getProductById(Integer productId) {
+		LOGGER.info("*** Searching in database as product with Id: {} not found in cache ***", productId);
+		Optional<Product> product = productRepository.findById(Long.valueOf(productId));
+		if (product.isPresent() && product.get().isEnabled()) {
+			// map the product to a product response DTO and return it
+			return modelMapper.map(product.get(), ProductResponseDTO.class);
+		}
+		throw new ProductNotFoundException("Product not found with ID: " + productId);
+	}
+
+	/**
+	 * This method is used to get a list of products based on the category id.
+	 * @param categoryId The id of the category.
+	 * @param pageNumber The page number.
+	 * @param pageSize The page size.
+	 * @param searchKey keyword to search products.
+	 * @param role of the user.
+	 * @return The page of products.
+	 */
+	@Override
+	@Cacheable(value = HASH_KEY, key = "{#categoryId, #pageNumber, #pageSize, #searchKey, #role}",
+			unless = "#result.getContent().size() == 0")
+	public Page<ProductResponseDTO> findProductsByCategory(Integer categoryId, int pageNumber, int pageSize,
+			String searchKey, String role) {
+		this.restTemplate.getForEntity("http://category-service/categories/v1/get/{categoryId}", Object.class,
+				categoryId);
+		// create a pageable object with the given page number and page size
+		Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+		return getPageOfFilteredProducts(categoryId, pageable, searchKey, role);
+	}
+
+	/**
+	 * This method is used to get all the products.
+	 * @param pageNumber The page number.
+	 * @param pageSize The page size.
+	 * @param searchKey keyword to search products
+	 * @param role role of the user
+	 * @return The page of products.
+	 */
+	@Override
+	@Caching(cacheable = @Cacheable(value = HASH_KEY, key = "{#pageNumber, #pageSize, #searchKey, #role}",
+			unless = "#result.getContent().size()==0"))
+	public Page<ProductResponseDTO> getAllProducts(int pageNumber, int pageSize, String searchKey, String role) {
+		// create a pageable object with the given page number and page size
+		Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+		return getPageOfFilteredProducts(0, pageable, searchKey, role);
+	}
+
+	/**
+	 * This method is used to update the existing product
+	 * @param productId id of the product
+	 * @param productRequestDTO product to update
+	 * @param username username
+	 * @param role user role
+	 * @return updated product response
+	 */
+	@Override
+	@Caching(evict = { @CacheEvict(value = HASH_KEY, allEntries = true) })
+	public ProductResponseDTO updateProductById(Integer productId, ProductRequestDTO productRequestDTO, String username,
+			String role) {
+		// if the user's role is not admin, throw an exception
+		if (!isNull(role) && role.equals("ROLE_USER")) {
+			LOGGER.error("*** {} ***", "Role needs to be ADMIN to update a product");
+			throw new UnAuthorizedException("Requires ROLE_ADMIN to update a product");
+		}
+		// save updatedProduct to database
+		ProductResponseDTO productInDB = this.getProductById(productId);
+		Product product = this.modelMapper.map(productInDB, Product.class);
+		// set values to existing product from payload
+		product.setProductColor(productRequestDTO.getProductColor());
+		product.setUpdatedAt(LocalDateTime.now());
+		product.setExtraProductImages(productRequestDTO.getExtraProductImages());
+		product.setProductMainImage(productRequestDTO.getProductMainImage());
+		product.setProductSizes(productRequestDTO.getProductSizes());
+		product.setProductName(productRequestDTO.getProductName());
+		product.setProductBrand(productRequestDTO.getProductBrand());
+		product.setCreatedAt(product.getCreatedAt());
+		product.setShortDescription(productRequestDTO.getShortDescription());
+		product.setLongDescription(productRequestDTO.getLongDescription());
+		product.setDiscountPercent(productRequestDTO.getDiscountPercent());
+		product.setProductPrice(productRequestDTO.getProductPrice());
+		product.setProductCount(product.getProductCount());
+		product.setDiscountedPrice(product.getDiscountedPrice());
+		product.setTotalPrice(product.getTotalPrice());
+		product.setUsername(username);
+		// find and replace the product
+		Optional<Product> findAndReplaceProduct = this.mongoTemplate.update(Product.class)
+			.matching(query(where("_id").is(productId)))
+			.replaceWith(product)
+			.withOptions(FindAndReplaceOptions.options().upsert().returnNew())
+			.as(Product.class)
+			.findAndReplace();
+		findAndReplaceProduct
+			.ifPresent(value -> this.redisTemplate.opsForHash().put(HASH_KEY, value.getProductId(), value));
+		ProductResponseDTO responseDTO;
+		responseDTO = modelMapper.map(findAndReplaceProduct.get(), ProductResponseDTO.class);
+		return responseDTO;
+	}
+
+	/**
+	 * Soft delete a product with given Id
+	 * @param productId id of the product
+	 * @param role role of the user
+	 */
+	@Override
+	@Caching(evict = { @CacheEvict(value = HASH_KEY, allEntries = true) })
+	public void deleteProductById(Integer productId, String role) {
+		// if the user's role is not admin, throw an exception
+		if (!isNull(role) && role.equals("ROLE_USER")) {
+			LOGGER.error("*** {} ***", "Role needs to be ADMIN to delete a product");
+			throw new UnAuthorizedException("Requires ROLE_ADMIN to delete a product");
+		}
+		Optional<Product> findAndReplaceProduct = this.productRepository.findById(Long.valueOf(productId));
+		if (findAndReplaceProduct.isPresent()) {
+			Product product = findAndReplaceProduct.get();
+			product.setEnabled(false);
+			this.mongoTemplate.update(Product.class)
+				.matching(query(where("_id").is(productId)))
+				.replaceWith(product)
+				.withOptions(FindAndReplaceOptions.options().upsert().returnNew())
+				.as(Product.class)
+				.findAndReplace();
+		}
+		LOGGER.info("Product with Id: {} deleted successfully", productId);
+	}
+
+	/**
+	 * This method is used to reduce the quantity of a product.
+	 * @param productId The id of the product.
+	 * @param productSize The size of the product.
+	 * @param quantity The quantity to be reduced.
+	 */
+	@Override
+	public void reduceProductCount(Integer productId, String productSize, Integer quantity) {
+		// Retrieve the product from the database
+		ProductResponseDTO productInDB = this.getProductById(productId);
+		Product product = this.modelMapper.map(productInDB, Product.class);
+		// Check if the provided quantity is less than the existing product count
+		if (product.getProductCount() < quantity) {
+			throw new RuntimeException("Provided product quantity shouldn't be greater than existing product count");
+		}
+		// Update the product quantity
+		AtomicInteger updatedProductQuantity = new AtomicInteger();
+		product.getProductSizes()
+			.stream()
+			.filter(size -> size.getName().equals(productSize))
+			.peek(size -> size.setQuantity((int) (size.getQuantity() - quantity)))
+			.forEach(s -> updatedProductQuantity.set(s.getQuantity()));
+		// Update the total product count
+		Integer totalProducts = Math.toIntExact(product.getProductSizes()
+			.stream()
+			.map(Size::getQuantity)
+			.collect(Collectors.summarizingInt(Integer::intValue))
+			.getSum());
+		product.setProductCount(totalProducts);
+		// Update the product count in the database
+		Query query1 = new Query();
+		query1.addCriteria(where("_id").is(productId));
+		this.mongoTemplate.findAndModify(query1, Update.update("product_count", product.getProductCount()),
+				Product.class);
+		// Update the quantity of the specified productSize in the database
+		Query query2 = new Query();
+		query2.addCriteria(where("_id").is(productId).and("product_sizes.name").is(productSize));
+		Update updateDefinition = new Update().set("product_sizes.$.quantity", updatedProductQuantity.intValue());
+		this.mongoTemplate.findAndModify(query2, updateDefinition, Product.class);
+		// Log a message indicating that the product quantity was updated successfully
+		LOGGER.info("***** Product with Id: {} and quantity: {} ordered successfully *****", productId, quantity);
+	}
+
+	/**
+	 * This method is used to find the products that are enabled
+	 * @return list of products to export
+	 */
+	@Override
+	public List<ProductResponseDTO> findProductsToExport() {
+
+		return this.productRepository.findAll()
+			.stream()
+			.filter(Product::isEnabled)
+			.map(product -> this.modelMapper.map(product, ProductResponseDTO.class))
+			.toList();
+	}
+
+	/**
+	 * This method is used to check if a product with a particular name exists in the
+	 * database and is enabled.
+	 * @param productName The name of the product.
+	 * @return True if the product does not exist, false otherwise.
+	 */
+	private boolean productIsUnique(String productName) {
+		// get the products with the given product name
+		List<Product> products = productRepository.findByProductName(productName)
+			.stream()
+			.filter(Product::isEnabled)
+			.toList();
+		// check if any products were found
+		return products.isEmpty();
+	}
+
+	public Page<ProductResponseDTO> getPageOfFilteredProducts(Integer categoryId, Pageable pageable, String searchKey,
+			String role) {
+
+		Page<ProductResponseDTO> page = null;
+		// create a query object
+		Query query = new Query();
+		// find the products using the mongo template and the query object
+		if (!isNull(role) && role.equals("ROLE_ADMIN")) {
+			query.with(pageable);
+		}
+		else {
+			query.with(pageable).addCriteria(where("is_enabled").is(true));
+		}
+		query.addCriteria(new Criteria().orOperator(where("product_name").regex(searchKey, "i"),
+				where("product_brand").regex(searchKey, "i"), where("short_desc").regex(searchKey, "i"),
+				where("long_desc").regex(searchKey, "i"), where("product_color").regex(searchKey, "i")));
+		List<Product> products = mongoTemplate.find(query, Product.class);
+		List<ProductResponseDTO> productByCategory;
+		if (categoryId != 0) {
+			if (!isNull(role) && role.equals("ROLE_ADMIN")) {
+				LOGGER.info("findProductsByCategory::Populating database response in cache on first hit");
+				// filter the products based on the category id
+				productByCategory = products.stream()
+					.filter(product -> product.getCategoryId().equals(categoryId))
+					.map(product -> modelMapper.map(product, ProductResponseDTO.class))
+					.toList();
+			}
+			else {
+				LOGGER.info("findProductsByCategory::Populating database response in cache on first hit");
+				// filter the products based on the category id
+				productByCategory = products.stream()
+					.filter(product -> product.getCategoryId().equals(categoryId) && product.isEnabled())
+					.map(product -> modelMapper.map(product, ProductResponseDTO.class))
+					.toList();
+			}
+			// create a page with the products and the total number of products
+			page = PageableExecutionUtils
+				.getPage(productByCategory, pageable,
+						() -> mongoTemplate.count(Query.of(query).limit(-1).skip(-1), Product.class))
+				.map(u -> modelMapper.map(u, ProductResponseDTO.class));
+		}
+		else {
+			if (!isNull(role) && role.equals("ROLE_ADMIN")) {
+				LOGGER.info("getAllProducts::Populating database response in cache on first hit");
+				page = PageableExecutionUtils
+					.getPage(products, pageable,
+							() -> mongoTemplate.count(Query.of(query).limit(-1).skip(-1), Product.class))
+					.map(u -> modelMapper.map(u, ProductResponseDTO.class));
+			}
+			else {
+				LOGGER.info("getAllProducts::Populating database response in cache on first hit");
+				page = PageableExecutionUtils
+					.getPage(products.stream().filter(Product::isEnabled).toList(), pageable,
+							() -> mongoTemplate.count(Query.of(query).limit(-1).skip(-1), Product.class))
+					.map(u -> modelMapper.map(u, ProductResponseDTO.class));
+			}
+		}
+		return new PageImpl<>(page.getContent(), pageable, page.getTotalElements());
+	}
+
+}
