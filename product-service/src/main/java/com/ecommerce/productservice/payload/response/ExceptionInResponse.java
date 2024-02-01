@@ -1,0 +1,28 @@
+package com.ecommerce.productservice.payload.response;
+
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import lombok.*;
+
+import java.io.Serial;
+import java.io.Serializable;
+
+@Getter
+@Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class ExceptionInResponse implements Serializable {
+
+	@Serial
+	private static final long serialVersionUID = 1759477433483466736L;
+
+	private int errorCode;
+
+	private String errorMessage;
+
+	private String errorDescription;
+
+}
