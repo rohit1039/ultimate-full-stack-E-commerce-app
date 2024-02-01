@@ -32,7 +32,7 @@ public class RedisConfig implements CachingConfigurer {
 	@Value(value = "${redis.timeout}")
 	private String timeout;
 
-	public static final String HASH_KEY = "products";
+	public static final String CACHE_NAME = "products";
 
 	@Bean
 	public JedisConnectionFactory jedisConnectionFactory() {

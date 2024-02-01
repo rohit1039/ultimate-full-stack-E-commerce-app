@@ -37,7 +37,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.ecommerce.productservice.config.RedisConfig.HASH_KEY;
+import static com.ecommerce.productservice.config.RedisConfig.CACHE_NAME;
 import static java.util.Objects.isNull;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -68,7 +68,7 @@ public class ProductServiceImpl implements ProductService {
 	 * @return The list of products saved to the database.
 	 */
 	@Override
-	@Caching(evict = { @CacheEvict(value = HASH_KEY, allEntries = true) })
+	@Caching(evict = { @CacheEvict(value = CACHE_NAME, allEntries = true) })
 	public ProductResponseDTO saveProductToDB(ProductRequestDTO productRequest, Integer categoryId, String username,
 			String role) {
 		// make a GET request to the category service to get the category
@@ -101,7 +101,7 @@ public class ProductServiceImpl implements ProductService {
 				product.setInStock(product.isInStock());
 				// save the product to the database
 				Product productToSaveInDB = productRepository.save(product);
-				this.redisTemplate.opsForHash().put(HASH_KEY, productToSaveInDB.getProductId(), productToSaveInDB);
+				this.redisTemplate.opsForHash().put(CACHE_NAME, productToSaveInDB.getProductId(), productToSaveInDB);
 				// map the saved product to a product response DTO
 				ProductResponseDTO productToDTO = modelMapper.map(productToSaveInDB, ProductResponseDTO.class);
 				LOGGER.info("*** {} ***", "Product Saved Successfully");
@@ -124,7 +124,7 @@ public class ProductServiceImpl implements ProductService {
 	 * @return The product with the given id.
 	 */
 	@Override
-	@Cacheable(value = HASH_KEY, key = "#productId")
+	@Cacheable(value = CACHE_NAME, key = "#productId")
 	public ProductResponseDTO getProductById(Integer productId) {
 		LOGGER.info("*** Searching in database as product with Id: {} not found in cache ***", productId);
 		Optional<Product> product = productRepository.findById(Long.valueOf(productId));
@@ -145,7 +145,7 @@ public class ProductServiceImpl implements ProductService {
 	 * @return The page of products.
 	 */
 	@Override
-	@Cacheable(value = HASH_KEY, key = "{#categoryId, #pageNumber, #pageSize, #searchKey, #role}",
+	@Cacheable(value = CACHE_NAME, key = "{#categoryId, #pageNumber, #pageSize, #searchKey, #role}",
 			unless = "#result.getContent().size() == 0")
 	public Page<ProductResponseDTO> findProductsByCategory(Integer categoryId, int pageNumber, int pageSize,
 			String searchKey, String role) {
@@ -165,8 +165,8 @@ public class ProductServiceImpl implements ProductService {
 	 * @return The page of products.
 	 */
 	@Override
-	@Caching(cacheable = @Cacheable(value = HASH_KEY, key = "{#pageNumber, #pageSize, #searchKey, #role}",
-			unless = "#result.getContent().size()==0"))
+	@Cacheable(value = CACHE_NAME, key = "{#pageNumber, #pageSize, #searchKey, #role}",
+			unless = "#result.getContent().size()==0")
 	public Page<ProductResponseDTO> getAllProducts(int pageNumber, int pageSize, String searchKey, String role) {
 		// create a pageable object with the given page number and page size
 		Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
@@ -182,7 +182,7 @@ public class ProductServiceImpl implements ProductService {
 	 * @return updated product response
 	 */
 	@Override
-	@Caching(evict = { @CacheEvict(value = HASH_KEY, allEntries = true) })
+	@Caching(evict = { @CacheEvict(value = CACHE_NAME, key = "#productId", allEntries = true) })
 	public ProductResponseDTO updateProductById(Integer productId, ProductRequestDTO productRequestDTO, String username,
 			String role) {
 		// if the user's role is not admin, throw an exception
@@ -218,7 +218,7 @@ public class ProductServiceImpl implements ProductService {
 			.as(Product.class)
 			.findAndReplace();
 		findAndReplaceProduct
-			.ifPresent(value -> this.redisTemplate.opsForHash().put(HASH_KEY, value.getProductId(), value));
+			.ifPresent(value -> this.redisTemplate.opsForHash().put(CACHE_NAME, value.getProductId(), value));
 		ProductResponseDTO responseDTO;
 		responseDTO = modelMapper.map(findAndReplaceProduct.get(), ProductResponseDTO.class);
 		return responseDTO;
@@ -230,7 +230,7 @@ public class ProductServiceImpl implements ProductService {
 	 * @param role role of the user
 	 */
 	@Override
-	@Caching(evict = { @CacheEvict(value = HASH_KEY, allEntries = true) })
+	@Caching(evict = { @CacheEvict(value = CACHE_NAME, key = "#productId", allEntries = true) })
 	public void deleteProductById(Integer productId, String role) {
 		// if the user's role is not admin, throw an exception
 		if (!isNull(role) && role.equals("ROLE_USER")) {
@@ -344,7 +344,7 @@ public class ProductServiceImpl implements ProductService {
 		List<ProductResponseDTO> productByCategory;
 		if (categoryId != 0) {
 			if (!isNull(role) && role.equals("ROLE_ADMIN")) {
-				LOGGER.info("findProductsByCategory::Populating database response in cache on first hit");
+				LOGGER.info("findProductsByCategory::Populating database response in cache");
 				// filter the products based on the category id
 				productByCategory = products.stream()
 					.filter(product -> product.getCategoryId().equals(categoryId))
@@ -352,7 +352,7 @@ public class ProductServiceImpl implements ProductService {
 					.toList();
 			}
 			else {
-				LOGGER.info("findProductsByCategory::Populating database response in cache on first hit");
+				LOGGER.info("findProductsByCategory::Populating database response in cache");
 				// filter the products based on the category id
 				productByCategory = products.stream()
 					.filter(product -> product.getCategoryId().equals(categoryId) && product.isEnabled())
@@ -367,14 +367,14 @@ public class ProductServiceImpl implements ProductService {
 		}
 		else {
 			if (!isNull(role) && role.equals("ROLE_ADMIN")) {
-				LOGGER.info("getAllProducts::Populating database response in cache on first hit");
+				LOGGER.info("getAllProducts::Populating database response in cache");
 				page = PageableExecutionUtils
 					.getPage(products, pageable,
 							() -> mongoTemplate.count(Query.of(query).limit(-1).skip(-1), Product.class))
 					.map(u -> modelMapper.map(u, ProductResponseDTO.class));
 			}
 			else {
-				LOGGER.info("getAllProducts::Populating database response in cache on first hit");
+				LOGGER.info("getAllProducts::Populating database response in cache");
 				page = PageableExecutionUtils
 					.getPage(products.stream().filter(Product::isEnabled).toList(), pageable,
 							() -> mongoTemplate.count(Query.of(query).limit(-1).skip(-1), Product.class))
