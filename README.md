@@ -31,5 +31,5 @@ This is a full-stack E-commerce application that is implemented with event-drive
 
 <br />
 
-<img src="https://github.com/rohit1039/full-stack-E-commerce-app/blob/main/full-stack-e-commerce-diagram.png"  alt=""/>
+<img src="https://github.com/rohit1039/ultimate-full-stack-E-commerce-app/blob/main/full-stack-e-commerce-diagram.png"  alt=""/>
 
