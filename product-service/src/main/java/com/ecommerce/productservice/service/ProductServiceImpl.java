@@ -66,13 +66,11 @@ public class ProductServiceImpl implements ProductService {
 	 * @param categoryId The id of the category to which the products belong.
 	 * @param username The username of the user.
 	 * @return The list of products saved to the database.
-	 * @throws Exception If the user does not have the required role or if the
-	 * authorization header is missing.
 	 */
 	@Override
 	@Caching(evict = { @CacheEvict(value = HASH_KEY, allEntries = true) })
 	public ProductResponseDTO saveProductToDB(ProductRequestDTO productRequest, Integer categoryId, String username,
-			String role) throws Exception {
+			String role) {
 		// make a GET request to the category service to get the category
 		ResponseEntity<Object> categoryResponse = restTemplate
 			.getForEntity("http://category-service/categories/v1/get/{categoryId}", Object.class, categoryId);
@@ -273,7 +271,7 @@ public class ProductServiceImpl implements ProductService {
 		product.getProductSizes()
 			.stream()
 			.filter(size -> size.getName().equals(productSize))
-			.peek(size -> size.setQuantity((int) (size.getQuantity() - quantity)))
+			.peek(size -> size.setQuantity(size.getQuantity() - quantity))
 			.forEach(s -> updatedProductQuantity.set(s.getQuantity()));
 		// Update the total product count
 		Integer totalProducts = Math.toIntExact(product.getProductSizes()
@@ -329,7 +327,7 @@ public class ProductServiceImpl implements ProductService {
 	public Page<ProductResponseDTO> getPageOfFilteredProducts(Integer categoryId, Pageable pageable, String searchKey,
 			String role) {
 
-		Page<ProductResponseDTO> page = null;
+		Page<ProductResponseDTO> page;
 		// create a query object
 		Query query = new Query();
 		// find the products using the mongo template and the query object
