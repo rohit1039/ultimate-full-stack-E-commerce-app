@@ -146,7 +146,7 @@ public class ProductServiceImpl implements ProductService {
 	 */
 	@Override
 	@Cacheable(value = CACHE_NAME, key = "{#categoryId, #pageNumber, #pageSize, #searchKey, #role}",
-			unless = "#result.getContent().size() == 0")
+			unless = "#result.getContent().size()==0")
 	public Page<ProductResponseDTO> findProductsByCategory(Integer categoryId, int pageNumber, int pageSize,
 			String searchKey, String role) {
 		this.restTemplate.getForEntity("http://category-service/categories/v1/get/{categoryId}", Object.class,
