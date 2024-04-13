@@ -19324,3 +19324,72 @@ com.netflix.discovery.shared.transport.TransportException: Cannot execute reques
 	at org.springframework.boot.SpringApplicationShutdownHook.run(SpringApplicationShutdownHook.java:108) ~[spring-boot-3.0.11.jar:3.0.11]
 	at java.lang.Thread.run(Thread.java:833) ~[?:?]
 [INFO ] 2024-02-01 16:26:53.897 [SpringApplicationShutdownHook] DiscoveryClient - Completed shut down of DiscoveryClient
+[INFO ] 2024-02-01 17:03:44.214 [background-preinit] Version - HV000001: Hibernate Validator 8.0.1.Final
+[INFO ] 2024-02-01 17:03:44.404 [main] ConfigServerApplication - Starting ConfigServerApplication using Java 18.0.2.1 with PID 26388 (D:\My_Projects\Full Stack E-Commerce Application\config-server\target\classes started by manav in D:\My_Projects\Full Stack E-Commerce Application\config-server)
+[DEBUG] 2024-02-01 17:03:44.406 [main] ConfigServerApplication - Running with Spring Boot v3.0.11, Spring v6.0.12
+[INFO ] 2024-02-01 17:03:44.409 [main] ConfigServerApplication - No active profile set, falling back to 1 default profile: "default"
+[INFO ] 2024-02-01 17:03:48.730 [main] GenericScope - BeanFactory id=7c1cb78f-0a47-312c-a4ea-6c8310c08cc5
+[INFO ] 2024-02-01 17:03:50.515 [main] TomcatWebServer - Tomcat initialized with port(s): 9296 (http)
+[INFO ] 2024-02-01 17:03:50.536 [main] Http11NioProtocol - Initializing ProtocolHandler ["http-nio-9296"]
+[INFO ] 2024-02-01 17:03:50.543 [main] StandardService - Starting service [Tomcat]
+[INFO ] 2024-02-01 17:03:50.545 [main] StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.13]
+[INFO ] 2024-02-01 17:03:50.900 [main] [/] - Initializing Spring embedded WebApplicationContext
+[INFO ] 2024-02-01 17:03:50.904 [main] ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 6274 ms
+[INFO ] 2024-02-01 17:03:53.264 [main] DiscoveryClientOptionalArgsConfiguration - Eureka HTTP Client uses RestTemplate.
+[WARN ] 2024-02-01 17:04:11.325 [main] LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+[INFO ] 2024-02-01 17:04:11.408 [main] InstanceInfoFactory - Setting initial instance status as: STARTING
+[INFO ] 2024-02-01 17:04:11.540 [main] DiscoveryClient - Initializing Eureka in region us-east-1
+[INFO ] 2024-02-01 17:04:11.551 [main] ConfigClusterResolver - Resolving eureka endpoints via configuration
+[INFO ] 2024-02-01 17:04:11.619 [main] DiscoveryClient - Disable delta property : false
+[INFO ] 2024-02-01 17:04:11.619 [main] DiscoveryClient - Single vip registry refresh property : null
+[INFO ] 2024-02-01 17:04:11.620 [main] DiscoveryClient - Force full registry fetch : false
+[INFO ] 2024-02-01 17:04:11.621 [main] DiscoveryClient - Application is null : false
+[INFO ] 2024-02-01 17:04:11.621 [main] DiscoveryClient - Registered Applications size is zero : true
+[INFO ] 2024-02-01 17:04:11.621 [main] DiscoveryClient - Application version is -1: true
+[INFO ] 2024-02-01 17:04:11.621 [main] DiscoveryClient - Getting all instance registry info from the eureka server
+[INFO ] 2024-02-01 17:04:12.954 [main] DiscoveryClient - The response status is 200
+[INFO ] 2024-02-01 17:04:12.959 [main] DiscoveryClient - Starting heartbeat executor: renew interval is: 30
+[INFO ] 2024-02-01 17:04:12.968 [main] InstanceInfoReplicator - InstanceInfoReplicator onDemand update allowed rate per min is 4
+[INFO ] 2024-02-01 17:04:12.987 [main] DiscoveryClient - Discovery Client initialized at timestamp 1706787252985 with initial instances count: 0
+[INFO ] 2024-02-01 17:04:12.993 [main] EurekaServiceRegistry - Registering application CONFIG-SERVER with eureka with status UP
+[INFO ] 2024-02-01 17:04:12.995 [main] DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1706787252995, current=UP, previous=STARTING]
+[INFO ] 2024-02-01 17:04:13.000 [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient - DiscoveryClient_CONFIG-SERVER/Rohit-PC:CONFIG-SERVER:9296: registering service...
+[INFO ] 2024-02-01 17:04:13.007 [main] Http11NioProtocol - Starting ProtocolHandler ["http-nio-9296"]
+[INFO ] 2024-02-01 17:04:13.130 [main] TomcatWebServer - Tomcat started on port(s): 9296 (http) with context path ''
+[INFO ] 2024-02-01 17:04:13.132 [main] EurekaAutoServiceRegistration - Updating port to 9296
+[INFO ] 2024-02-01 17:04:13.395 [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient - DiscoveryClient_CONFIG-SERVER/Rohit-PC:CONFIG-SERVER:9296 - registration status: 204
+[INFO ] 2024-02-01 17:04:13.659 [main] ConfigServerApplication - Started ConfigServerApplication in 31.439 seconds (process running for 39.36)
+[INFO ] 2024-02-01 17:04:41.364 [http-nio-9296-exec-2] [/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+[INFO ] 2024-02-01 17:04:41.365 [http-nio-9296-exec-2] DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+[INFO ] 2024-02-01 17:04:41.368 [http-nio-9296-exec-2] DispatcherServlet - Completed initialization in 3 ms
+[INFO ] 2024-02-01 17:04:42.972 [DiscoveryClient-CacheRefreshExecutor-0] DiscoveryClient - Disable delta property : false
+[INFO ] 2024-02-01 17:04:42.973 [DiscoveryClient-CacheRefreshExecutor-0] DiscoveryClient - Single vip registry refresh property : null
+[INFO ] 2024-02-01 17:04:42.974 [DiscoveryClient-CacheRefreshExecutor-0] DiscoveryClient - Force full registry fetch : false
+[INFO ] 2024-02-01 17:04:42.975 [DiscoveryClient-CacheRefreshExecutor-0] DiscoveryClient - Application is null : false
+[INFO ] 2024-02-01 17:04:42.975 [DiscoveryClient-CacheRefreshExecutor-0] DiscoveryClient - Registered Applications size is zero : true
+[INFO ] 2024-02-01 17:04:42.976 [DiscoveryClient-CacheRefreshExecutor-0] DiscoveryClient - Application version is -1: false
+[INFO ] 2024-02-01 17:04:42.977 [DiscoveryClient-CacheRefreshExecutor-0] DiscoveryClient - Getting all instance registry info from the eureka server
+[INFO ] 2024-02-01 17:04:43.026 [DiscoveryClient-CacheRefreshExecutor-0] DiscoveryClient - The response status is 200
+[INFO ] 2024-02-01 17:04:54.669 [http-nio-9296-exec-2] NativeEnvironmentRepository - Adding property source: Config resource 'file [C:\Users\manav\AppData\Local\Temp\config-repo-7046430734626012058\application.properties]' via location 'file:/C:/Users/manav/AppData/Local/Temp/config-repo-7046430734626012058/'
+[INFO ] 2024-02-01 17:06:42.885 [http-nio-9296-exec-3] NativeEnvironmentRepository - Adding property source: Config resource 'file [C:\Users\manav\AppData\Local\Temp\config-repo-7046430734626012058\application.properties]' via location 'file:/C:/Users/manav/AppData/Local/Temp/config-repo-7046430734626012058/'
+[INFO ] 2024-02-01 17:06:44.755 [http-nio-9296-exec-9] NativeEnvironmentRepository - Adding property source: Config resource 'file [C:\Users\manav\AppData\Local\Temp\config-repo-7046430734626012058\application.properties]' via location 'file:/C:/Users/manav/AppData/Local/Temp/config-repo-7046430734626012058/'
+[INFO ] 2024-02-01 17:07:31.937 [http-nio-9296-exec-5] NativeEnvironmentRepository - Adding property source: Config resource 'file [C:\Users\manav\AppData\Local\Temp\config-repo-7046430734626012058\application.properties]' via location 'file:/C:/Users/manav/AppData/Local/Temp/config-repo-7046430734626012058/'
+[WARN ] 2024-02-01 17:08:14.841 [http-nio-9296-exec-4] MultipleJGitEnvironmentRepository - Could not fetch remote for main remote: https://github.com/rohit1039/ecommerce-config-server
+[INFO ] 2024-02-01 17:08:14.916 [http-nio-9296-exec-4] NativeEnvironmentRepository - Adding property source: Config resource 'file [C:\Users\manav\AppData\Local\Temp\config-repo-7046430734626012058\application.properties]' via location 'file:/C:/Users/manav/AppData/Local/Temp/config-repo-7046430734626012058/'
+[WARN ] 2024-02-01 17:08:18.435 [http-nio-9296-exec-8] MultipleJGitEnvironmentRepository - Could not fetch remote for main remote: https://github.com/rohit1039/ecommerce-config-server
+[INFO ] 2024-02-01 17:08:18.529 [http-nio-9296-exec-8] NativeEnvironmentRepository - Adding property source: Config resource 'file [C:\Users\manav\AppData\Local\Temp\config-repo-7046430734626012058\application.properties]' via location 'file:/C:/Users/manav/AppData/Local/Temp/config-repo-7046430734626012058/'
+[INFO ] 2024-02-01 17:09:11.627 [AsyncResolver-bootstrap-executor-0] ConfigClusterResolver - Resolving eureka endpoints via configuration
+[INFO ] 2024-02-01 17:14:11.631 [AsyncResolver-bootstrap-executor-0] ConfigClusterResolver - Resolving eureka endpoints via configuration
+[INFO ] 2024-02-01 17:14:54.893 [http-nio-9296-exec-3] NativeEnvironmentRepository - Adding property source: Config resource 'file [C:\Users\manav\AppData\Local\Temp\config-repo-7046430734626012058\application.properties]' via location 'file:/C:/Users/manav/AppData/Local/Temp/config-repo-7046430734626012058/'
+[INFO ] 2024-02-01 17:19:11.640 [AsyncResolver-bootstrap-executor-0] ConfigClusterResolver - Resolving eureka endpoints via configuration
+[INFO ] 2024-02-01 17:21:04.346 [http-nio-9296-exec-5] NativeEnvironmentRepository - Adding property source: Config resource 'file [C:\Users\manav\AppData\Local\Temp\config-repo-7046430734626012058\application.properties]' via location 'file:/C:/Users/manav/AppData/Local/Temp/config-repo-7046430734626012058/'
+[INFO ] 2024-02-01 17:24:11.649 [AsyncResolver-bootstrap-executor-0] ConfigClusterResolver - Resolving eureka endpoints via configuration
+[INFO ] 2024-02-01 17:28:46.866 [SpringApplicationShutdownHook] EurekaServiceRegistry - Unregistering application CONFIG-SERVER with eureka with status DOWN
+[INFO ] 2024-02-01 17:28:46.866 [SpringApplicationShutdownHook] DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1706788726866, current=DOWN, previous=UP]
+[INFO ] 2024-02-01 17:28:46.866 [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient - DiscoveryClient_CONFIG-SERVER/Rohit-PC:CONFIG-SERVER:9296: registering service...
+[WARN ] 2024-02-01 17:28:46.871 [Thread-3] MultipleJGitEnvironmentRepository - Failed to delete temporary directory on exit: java.nio.file.AccessDeniedException: C:\Users\manav\AppData\Local\Temp\config-repo-7046430734626012058\.git\objects\pack\pack-a96183072075fb394bbfab0aab966a3b28374916.idx
+[INFO ] 2024-02-01 17:28:46.871 [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient - DiscoveryClient_CONFIG-SERVER/Rohit-PC:CONFIG-SERVER:9296 - registration status: 204
+[INFO ] 2024-02-01 17:28:46.895 [SpringApplicationShutdownHook] DiscoveryClient - Shutting down DiscoveryClient ...
+[INFO ] 2024-02-01 17:28:49.910 [SpringApplicationShutdownHook] DiscoveryClient - Unregistering ...
+[INFO ] 2024-02-01 17:28:49.916 [SpringApplicationShutdownHook] DiscoveryClient - DiscoveryClient_CONFIG-SERVER/Rohit-PC:CONFIG-SERVER:9296 - deregister  status: 200
+[INFO ] 2024-02-01 17:28:49.921 [SpringApplicationShutdownHook] DiscoveryClient - Completed shut down of DiscoveryClient

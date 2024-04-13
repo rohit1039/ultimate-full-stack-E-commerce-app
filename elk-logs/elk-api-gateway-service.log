@@ -11339,3 +11339,97 @@ com.netflix.discovery.shared.transport.TransportException: Cannot execute reques
 	at org.springframework.boot.SpringApplicationShutdownHook.run(SpringApplicationShutdownHook.java:108) ~[spring-boot-3.0.6.jar:3.0.6]
 	at java.lang.Thread.run(Thread.java:833) ~[?:?]
 [INFO ] 2024-02-01 16:38:53.390 [SpringApplicationShutdownHook] DiscoveryClient - Completed shut down of DiscoveryClient
+[INFO ] 2024-02-01 17:08:19.179 [background-preinit] Version - HV000001: Hibernate Validator 8.0.0.Final
+[INFO ] 2024-02-01 17:08:19.376 [main] ApiGatewayApplication - Starting ApiGatewayApplication using Java 17.0.6 with PID 25928 (D:\My_Projects\Full Stack E-Commerce Application\api-gateway\target\classes started by manav in D:\My_Projects\Full Stack E-Commerce Application\api-gateway)
+[DEBUG] 2024-02-01 17:08:19.401 [main] ApiGatewayApplication - Running with Spring Boot v3.0.6, Spring v6.0.8
+[INFO ] 2024-02-01 17:08:19.405 [main] ApiGatewayApplication - No active profile set, falling back to 1 default profile: "default"
+[INFO ] 2024-02-01 17:08:19.691 [main] ConfigServerConfigDataLoader - Fetching config from server at : http://localhost:9296
+[INFO ] 2024-02-01 17:08:19.692 [main] ConfigServerConfigDataLoader - Located environment: name=API-GATEWAY, profiles=[default], label=null, version=ff152f07f48c79dc4281ee4653da9e117ba96ee6, state=null
+[INFO ] 2024-02-01 17:08:25.272 [main] GenericScope - BeanFactory id=5dcf2a18-e97f-3a35-b814-82557bbd0960
+[INFO ] 2024-02-01 17:08:25.536 [main] PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+[INFO ] 2024-02-01 17:08:25.540 [main] PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+[INFO ] 2024-02-01 17:08:25.545 [main] PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+[INFO ] 2024-02-01 17:08:30.722 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [After]
+[INFO ] 2024-02-01 17:08:30.722 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Before]
+[INFO ] 2024-02-01 17:08:30.723 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Between]
+[INFO ] 2024-02-01 17:08:30.723 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Cookie]
+[INFO ] 2024-02-01 17:08:30.723 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Header]
+[INFO ] 2024-02-01 17:08:30.724 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Host]
+[INFO ] 2024-02-01 17:08:30.724 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Method]
+[INFO ] 2024-02-01 17:08:30.724 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Path]
+[INFO ] 2024-02-01 17:08:30.725 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Query]
+[INFO ] 2024-02-01 17:08:30.725 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [ReadBody]
+[INFO ] 2024-02-01 17:08:30.727 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [RemoteAddr]
+[INFO ] 2024-02-01 17:08:30.727 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+[INFO ] 2024-02-01 17:08:30.727 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [Weight]
+[INFO ] 2024-02-01 17:08:30.727 [main] RouteDefinitionRouteLocator - Loaded RoutePredicateFactory [CloudFoundryRouteService]
+[INFO ] 2024-02-01 17:08:32.817 [main] EndpointLinksResolver - Exposing 16 endpoint(s) beneath base path '/actuator'
+[INFO ] 2024-02-01 17:08:33.943 [main] DiscoveryClientOptionalArgsConfiguration - Eureka HTTP Client uses RestTemplate.
+[WARN ] 2024-02-01 17:08:34.046 [main] LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+[INFO ] 2024-02-01 17:08:34.273 [main] InstanceInfoFactory - Setting initial instance status as: STARTING
+[INFO ] 2024-02-01 17:08:34.455 [main] DiscoveryClient - Initializing Eureka in region us-east-1
+[INFO ] 2024-02-01 17:08:34.471 [main] ConfigClusterResolver - Resolving eureka endpoints via configuration
+[INFO ] 2024-02-01 17:08:34.661 [main] DiscoveryClient - Disable delta property : false
+[INFO ] 2024-02-01 17:08:34.662 [main] DiscoveryClient - Single vip registry refresh property : null
+[INFO ] 2024-02-01 17:08:34.663 [main] DiscoveryClient - Force full registry fetch : false
+[INFO ] 2024-02-01 17:08:34.663 [main] DiscoveryClient - Application is null : false
+[INFO ] 2024-02-01 17:08:34.664 [main] DiscoveryClient - Registered Applications size is zero : true
+[INFO ] 2024-02-01 17:08:34.665 [main] DiscoveryClient - Application version is -1: true
+[INFO ] 2024-02-01 17:08:34.665 [main] DiscoveryClient - Getting all instance registry info from the eureka server
+[INFO ] 2024-02-01 17:08:36.248 [main] DiscoveryClient - The response status is 200
+[INFO ] 2024-02-01 17:08:36.262 [main] DiscoveryClient - Starting heartbeat executor: renew interval is: 30
+[INFO ] 2024-02-01 17:08:36.291 [main] InstanceInfoReplicator - InstanceInfoReplicator onDemand update allowed rate per min is 4
+[INFO ] 2024-02-01 17:08:36.335 [main] DiscoveryClient - Discovery Client initialized at timestamp 1706787516332 with initial instances count: 3
+[INFO ] 2024-02-01 17:08:36.342 [main] EurekaServiceRegistry - Registering application API-GATEWAY with eureka with status UP
+[INFO ] 2024-02-01 17:08:36.344 [main] DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1706787516344, current=UP, previous=STARTING]
+[INFO ] 2024-02-01 17:08:36.392 [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient - DiscoveryClient_API-GATEWAY/Rohit-PC:API-GATEWAY:8081: registering service...
+[INFO ] 2024-02-01 17:08:37.136 [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient - DiscoveryClient_API-GATEWAY/Rohit-PC:API-GATEWAY:8081 - registration status: 204
+[INFO ] 2024-02-01 17:08:37.470 [main] NettyWebServer - Netty started on port 8081
+[INFO ] 2024-02-01 17:08:37.472 [main] EurekaAutoServiceRegistration - Updating port to 8081
+[INFO ] 2024-02-01 17:08:38.649 [main] ApiGatewayApplication - Started ApiGatewayApplication in 22.93 seconds (process running for 29.171)
+[INFO ] 2024-02-01 17:08:59.206 [reactor-http-nio-2] AbstractOpenApiResource - Init duration for springdoc-openapi is: 403 ms
+[INFO ] 2024-02-01 17:09:04.895 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /users/v3/api-docs
+[INFO ] 2024-02-01 17:09:44.481 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /users/v1/auth/login
+[INFO ] 2024-02-01 17:09:56.152 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /categories/v3/api-docs
+[INFO ] 2024-02-01 17:09:59.453 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v3/api-docs
+[INFO ] 2024-02-01 17:10:14.352 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:10:34.119 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/update/1
+[INFO ] 2024-02-01 17:11:12.218 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/add/1
+[INFO ] 2024-02-01 17:11:33.105 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:11:52.946 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/update/5
+[INFO ] 2024-02-01 17:12:02.180 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:13:34.702 [AsyncResolver-bootstrap-executor-0] ConfigClusterResolver - Resolving eureka endpoints via configuration
+[WARN ] 2024-02-01 17:15:35.948 [reactor-http-nio-2] RoundRobinLoadBalancer - No servers available for service: product-service
+[ERROR] 2024-02-01 17:15:35.965 [reactor-http-nio-2] AuthenticationFilter - Some error occurred in ApiGateway: 503 SERVICE_UNAVAILABLE "Unable to find instance for product-service"
+[INFO ] 2024-02-01 17:16:31.960 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:16:55.909 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/update/5
+[INFO ] 2024-02-01 17:17:21.489 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:17:35.759 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:18:34.709 [AsyncResolver-bootstrap-executor-0] ConfigClusterResolver - Resolving eureka endpoints via configuration
+[INFO ] 2024-02-01 17:19:47.791 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/delete/5
+[INFO ] 2024-02-01 17:19:54.118 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:20:09.367 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[WARN ] 2024-02-01 17:20:47.470 [reactor-http-nio-2] RoundRobinLoadBalancer - No servers available for service: product-service
+[ERROR] 2024-02-01 17:20:47.471 [reactor-http-nio-2] AuthenticationFilter - Some error occurred in ApiGateway: 503 SERVICE_UNAVAILABLE "Unable to find instance for product-service"
+[WARN ] 2024-02-01 17:21:31.021 [reactor-http-nio-2] RoundRobinLoadBalancer - No servers available for service: product-service
+[ERROR] 2024-02-01 17:21:31.021 [reactor-http-nio-2] AuthenticationFilter - Some error occurred in ApiGateway: 503 SERVICE_UNAVAILABLE "Unable to find instance for product-service"
+[WARN ] 2024-02-01 17:21:33.125 [reactor-http-nio-2] RoundRobinLoadBalancer - No servers available for service: product-service
+[ERROR] 2024-02-01 17:21:33.125 [reactor-http-nio-2] AuthenticationFilter - Some error occurred in ApiGateway: 503 SERVICE_UNAVAILABLE "Unable to find instance for product-service"
+[INFO ] 2024-02-01 17:22:49.351 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/5
+[INFO ] 2024-02-01 17:23:02.574 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:23:15.422 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/5
+[INFO ] 2024-02-01 17:23:34.711 [AsyncResolver-bootstrap-executor-0] ConfigClusterResolver - Resolving eureka endpoints via configuration
+[INFO ] 2024-02-01 17:23:42.226 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/5
+[INFO ] 2024-02-01 17:23:55.619 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:24:10.733 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/delete/5
+[INFO ] 2024-02-01 17:24:15.751 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:24:27.505 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/5
+[INFO ] 2024-02-01 17:24:54.707 [reactor-http-nio-2] LoggingFilter - Original Request Path -> /products/v1/get/all
+[INFO ] 2024-02-01 17:28:25.906 [SpringApplicationShutdownHook] EurekaServiceRegistry - Unregistering application API-GATEWAY with eureka with status DOWN
+[INFO ] 2024-02-01 17:28:25.907 [SpringApplicationShutdownHook] DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1706788705907, current=DOWN, previous=UP]
+[INFO ] 2024-02-01 17:28:25.907 [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient - DiscoveryClient_API-GATEWAY/Rohit-PC:API-GATEWAY:8081: registering service...
+[INFO ] 2024-02-01 17:28:25.913 [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient - DiscoveryClient_API-GATEWAY/Rohit-PC:API-GATEWAY:8081 - registration status: 204
+[INFO ] 2024-02-01 17:28:28.012 [SpringApplicationShutdownHook] DiscoveryClient - Shutting down DiscoveryClient ...
+[INFO ] 2024-02-01 17:28:31.023 [SpringApplicationShutdownHook] DiscoveryClient - Unregistering ...
+[INFO ] 2024-02-01 17:28:31.028 [SpringApplicationShutdownHook] DiscoveryClient - DiscoveryClient_API-GATEWAY/Rohit-PC:API-GATEWAY:8081 - deregister  status: 200
+[INFO ] 2024-02-01 17:28:31.032 [SpringApplicationShutdownHook] DiscoveryClient - Completed shut down of DiscoveryClient
