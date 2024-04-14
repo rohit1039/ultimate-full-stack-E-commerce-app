@@ -2,21 +2,28 @@
 
 image:https://img.shields.io/badge/vert.x-4.5.7-purple.svg[link="https://vertx.io"]
 
+== Vert.x and Spring Boot Integration with Spring Cloud
+
+This is a reactive microservice developed with Vert.x using rxjava3.
+
 This application was generated using http://start.vertx.io
 
 == Building
 
 To launch your tests:
+
 ```
 ./mvnw clean test
 ```
 
 To package your application:
+
 ```
 ./mvnw clean package
 ```
 
 To run your application:
+
 ```
 ./mvnw clean compile exec:java
 ```
