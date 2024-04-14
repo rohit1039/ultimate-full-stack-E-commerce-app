@@ -12,29 +12,30 @@ import javax.annotation.PostConstruct;
 @SpringBootApplication
 public class OrderServiceApplication {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OrderServiceApplication.class.getName());
+	private static final Logger LOG = LoggerFactory.getLogger(OrderServiceApplication.class.getName());
 
-  private final MainVerticle mainVerticle;
+	private final MainVerticle mainVerticle;
 
-  public OrderServiceApplication(MainVerticle mainVerticle) {
+	public OrderServiceApplication(MainVerticle mainVerticle) {
 
-    this.mainVerticle = mainVerticle;
-  }
+		this.mainVerticle = mainVerticle;
+	}
 
-  public static void main(String[] args) {
+	public static void main(String[] args) {
 
-    SpringApplication.run(OrderServiceApplication.class);
-  }
+		SpringApplication.run(OrderServiceApplication.class);
+	}
 
-  @PostConstruct
-  public void deployServerVerticle() {
+	@PostConstruct
+	public void deployServerVerticle() {
 
-    var vertx = Vertx.vertx();
-    vertx.exceptionHandler(exception -> LOG.error("Unhandled Exception: ", exception.getCause()));
-    vertx.rxDeployVerticle(mainVerticle)
-         .doOnSuccess(success -> LOG.info("Deployed verticle: {} Successfully!", mainVerticle.getClass().getName()))
-         .doOnError(error -> LOG.error("Failed to deploy: ", error.getCause()))
-         .subscribe();
-    LOG.info("Deployed verticle: {} Successfully!", mainVerticle.getClass().getName());
-  }
+		var vertx = Vertx.vertx();
+		vertx.exceptionHandler(exception -> LOG.error("Unhandled Exception: ", exception.getCause()));
+		vertx.rxDeployVerticle(mainVerticle)
+			.doOnSuccess(success -> LOG.info("Deployed verticle: {} Successfully!", mainVerticle.getClass().getName()))
+			.doOnError(error -> LOG.error("Failed to deploy: ", error.getCause()))
+			.subscribe();
+		LOG.info("Deployed verticle: {} Successfully!", mainVerticle.getClass().getName());
+	}
+
 }
