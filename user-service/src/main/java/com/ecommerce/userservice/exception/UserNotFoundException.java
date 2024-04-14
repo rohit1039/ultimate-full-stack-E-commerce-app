@@ -2,9 +2,8 @@ package com.ecommerce.userservice.exception;
 
 public class UserNotFoundException extends RuntimeException {
 
-	public UserNotFoundException(String message) {
+  public UserNotFoundException(String message) {
 
-		super(message);
-	}
-
+    super(message);
+  }
 }

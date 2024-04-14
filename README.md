@@ -1,6 +1,6 @@
 # Full Stack E-commerce Application 🛒
-## The ultimate full stack E-commerce application
 
+## The ultimate full stack E-commerce application
 
 ### 🛠 <i> Languages and Tools </i>
 
@@ -8,12 +8,10 @@
 ![](https://img.shields.io/badge/Tool-Intellij_IDEA-informational?style=flat&logo=IntelliJIDEA&logoColor=white&color=088F8F)
 ![](https://img.shields.io/badge/Tool-Visual_Studio_Code-informational?style=flat&logo=VisualStudioCode&logoColor=white&color=088F8F)
 
-
 ### 📄 <i> Front-end Technologies </i>
 
 ![](https://img.shields.io/badge/Framework-React_JS-informational?style=flat&logo=react&logoColor=white&color=informational)
 ![](https://img.shields.io/badge/Framework-React_Bootstrap-informational?style=flat&logo=bootstrap&logoColor=white&color=informational)
-
 
 ### ⚙️ <i> Back-end Technologies </i>
 

@@ -12,14 +12,11 @@ import lombok.ToString;
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CategoryRequestDTO {
 
-	@NotBlank
-	@Schema(description = "Category Name", example = "Men's T-Shirts")
-	private String categoryName;
+  @NotBlank
+  @Schema(description = "Category Name", example = "Men's T-Shirts")
+  private String categoryName;
 
-	/**
-	 * We can update parentCategoryName only if the parentCategory exists in our database
-	 */
-	@Schema(description = "Parent Category Name", example = "Men's Wear")
-	private String parentCategoryName;
-
+  /** We can update parentCategoryName only if the parentCategory exists in our database */
+  @Schema(description = "Parent Category Name", example = "Men's Wear")
+  private String parentCategoryName;
 }

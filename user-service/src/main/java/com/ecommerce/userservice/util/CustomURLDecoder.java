@@ -5,9 +5,8 @@ import java.nio.charset.StandardCharsets;
 
 public class CustomURLDecoder {
 
-	public static String decodeValue(String value) {
+  public static String decodeValue(String value) {
 
-		return URLDecoder.decode(value, StandardCharsets.UTF_8);
-	}
-
+    return URLDecoder.decode(value, StandardCharsets.UTF_8);
+  }
 }

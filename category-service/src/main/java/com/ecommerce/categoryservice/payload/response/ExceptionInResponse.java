@@ -14,10 +14,9 @@ import lombok.NoArgsConstructor;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ExceptionInResponse {
 
-	private int errorCode;
+  private int errorCode;
 
-	private String errorMessage;
+  private String errorMessage;
 
-	private String errorDescription;
-
+  private String errorDescription;
 }

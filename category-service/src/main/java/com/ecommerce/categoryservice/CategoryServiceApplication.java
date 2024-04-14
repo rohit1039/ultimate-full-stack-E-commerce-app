@@ -12,39 +12,37 @@ import org.springframework.web.filter.CorsFilter;
 @SpringBootApplication
 public class CategoryServiceApplication {
 
-	public static void main(String[] args) {
+  public static void main(String[] args) {
 
-		SpringApplication.run(CategoryServiceApplication.class, args);
-	}
+    SpringApplication.run(CategoryServiceApplication.class, args);
+  }
 
-	@Bean
-	public ModelMapper modelMapper() {
+  @Bean
+  public ModelMapper modelMapper() {
 
-		return new ModelMapper();
-	}
+    return new ModelMapper();
+  }
 
-	@Bean
-	public FilterRegistrationBean<?> coresFilter() {
+  @Bean
+  public FilterRegistrationBean<?> coresFilter() {
 
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		CorsConfiguration corsConfiguration = new CorsConfiguration();
-		corsConfiguration.setAllowCredentials(true);
-		corsConfiguration.addAllowedOriginPattern("*");
-		corsConfiguration.addAllowedHeader("Authorization");
-		corsConfiguration.addAllowedHeader("Content-Type");
-		corsConfiguration.addAllowedHeader("Accept");
-		corsConfiguration.addAllowedMethod("POST");
-		corsConfiguration.addAllowedMethod("GET");
-		corsConfiguration.addAllowedMethod("DELETE");
-		corsConfiguration.addAllowedMethod("PUT");
-		corsConfiguration.addAllowedMethod("PATCH");
-		corsConfiguration.addAllowedMethod("OPTIONS");
-		corsConfiguration.setMaxAge(3600L);
-		source.registerCorsConfiguration("/**", corsConfiguration);
-		FilterRegistrationBean<?> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-		bean.setOrder(-110);
-
-		return bean;
-	}
-
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    CorsConfiguration corsConfiguration = new CorsConfiguration();
+    corsConfiguration.setAllowCredentials(true);
+    corsConfiguration.addAllowedOriginPattern("*");
+    corsConfiguration.addAllowedHeader("Authorization");
+    corsConfiguration.addAllowedHeader("Content-Type");
+    corsConfiguration.addAllowedHeader("Accept");
+    corsConfiguration.addAllowedMethod("POST");
+    corsConfiguration.addAllowedMethod("GET");
+    corsConfiguration.addAllowedMethod("DELETE");
+    corsConfiguration.addAllowedMethod("PUT");
+    corsConfiguration.addAllowedMethod("PATCH");
+    corsConfiguration.addAllowedMethod("OPTIONS");
+    corsConfiguration.setMaxAge(3600L);
+    source.registerCorsConfiguration("/**", corsConfiguration);
+    FilterRegistrationBean<?> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+    bean.setOrder(-110);
+    return bean;
+  }
 }

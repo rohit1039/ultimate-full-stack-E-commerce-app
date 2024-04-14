@@ -14,10 +14,9 @@ import lombok.*;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class LoginDTO {
 
-	@Schema(description = "username of the user", example = "testuser@gmail.com")
-	private String username;
+  @Schema(description = "username of the user", example = "testuser@gmail.com")
+  private String username;
 
-	@Schema(description = "password of the user", example = "Test@7978")
-	private String password;
-
+  @Schema(description = "password of the user", example = "Test@7978")
+  private String password;
 }

@@ -13,13 +13,9 @@ import lombok.*;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ForgotPasswordDTO {
 
-	@NotNull
-	private String username;
+  @NotNull private String username;
 
-	@NotNull
-	private String oldPassword;
+  @NotNull private String oldPassword;
 
-	@NotNull
-	private String newPassword;
-
+  @NotNull private String newPassword;
 }

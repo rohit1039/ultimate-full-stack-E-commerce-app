@@ -11,17 +11,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ClientException extends RuntimeException {
 
-	private int errorCode;
+  private int errorCode;
 
-	private String errorMessage;
+  private String errorMessage;
 
-	private String errorDescription;
+  private String errorDescription;
 
-	public ClientException(String message, int errorCode, String errorMessage, String errorDescription) {
-		super(message);
-		this.errorCode = errorCode;
-		this.errorMessage = errorMessage;
-		this.errorDescription = errorDescription;
-	}
+  public ClientException(
+      String message, int errorCode, String errorMessage, String errorDescription) {
 
+    super(message);
+    this.errorCode = errorCode;
+    this.errorMessage = errorMessage;
+    this.errorDescription = errorDescription;
+  }
 }

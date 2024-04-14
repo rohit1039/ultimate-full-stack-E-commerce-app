@@ -11,15 +11,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
 public class ApiGatewayApplication {
 
-	public static void main(String[] args) {
+  public static void main(String[] args) {
 
-		SpringApplication.run(ApiGatewayApplication.class);
-	}
+    SpringApplication.run(ApiGatewayApplication.class);
+  }
 
-	@Bean
-	@LoadBalanced
-	public WebClient.Builder webClient() {
-		return WebClient.builder();
-	}
+  @Bean
+  @LoadBalanced
+  public WebClient.Builder webClient() {
 
+    return WebClient.builder();
+  }
 }

@@ -1,42 +1,42 @@
 # The port that the server will run on.
 server:
   port: 8081
-  
+
 # The name of the application
 spring:
   application:
     name: API-GATEWAY
 
   cloud:
-     gateway:
-       discovery:
-         locator:
-           enabled: true
-           lower-case-service-id: true
-#         globalcors:
-#           corsConfigurations:
-#             [ /** ]:
-#               allowedOrigins: /**
-#               allowedMethods: GET,POST,PUT,PATCH,DELETE
-       routes:
-         - id: user-service
-           uri: lb://user-service
-           predicates:
-             - Path=/users/**
-           filters:
-             - name: AuthenticationFilter
-         - id: product-service
-           uri: lb://product-service
-           predicates:
-             - Path=/products/**
-           filters:
-             - name: AuthenticationFilter
-         - id: category-service
-           uri: lb://category-service
-           predicates:
-             - Path=/categories/**
-           filters:
-             - name: AuthenticationFilter
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      #         globalcors:
+      #           corsConfigurations:
+      #             [ /** ]:
+      #               allowedOrigins: /**
+      #               allowedMethods: GET,POST,PUT,PATCH,DELETE
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: AuthenticationFilter
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/products/**
+          filters:
+            - name: AuthenticationFilter
+        - id: category-service
+          uri: lb://category-service
+          predicates:
+            - Path=/categories/**
+          filters:
+            - name: AuthenticationFilter
   
   # The URL of the configuration server.
   config:
@@ -77,6 +77,6 @@ springdoc:
       primaryName: Product Service
   enable-native-support: true
   api-docs.enabled: true
-  
+
 # The secret key for JSON Web Tokens (JWT).
 app.jwt.secret: RandomSecretKey1234567890!RandomSecretKey1234567890!RandomSecretKey1234567890!RandomSecretKey1234567890!

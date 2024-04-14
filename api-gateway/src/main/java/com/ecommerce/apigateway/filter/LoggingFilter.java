@@ -11,14 +11,12 @@ import reactor.core.publisher.Mono;
 @Component
 public class LoggingFilter implements GlobalFilter {
 
-	private static final Logger logger = LoggerFactory.getLogger(LoggingFilter.class);
+  private static final Logger logger = LoggerFactory.getLogger(LoggingFilter.class);
 
-	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+  @Override
+  public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-		logger.info("Original Request Path -> {}", exchange.getRequest().getPath());
-
-		return chain.filter(exchange);
-	}
-
+    logger.info("Original Request Path -> {}", exchange.getRequest().getPath());
+    return chain.filter(exchange);
+  }
 }

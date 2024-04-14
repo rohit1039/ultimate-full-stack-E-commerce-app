@@ -2,10 +2,9 @@ package com.ecommerce.productservice.payload.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.*;
-
 import java.io.Serial;
 import java.io.Serializable;
+import lombok.*;
 
 @Getter
 @Setter
@@ -16,13 +15,11 @@ import java.io.Serializable;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ExceptionInResponse implements Serializable {
 
-	@Serial
-	private static final long serialVersionUID = 1759477433483466736L;
+  @Serial private static final long serialVersionUID = 1759477433483466736L;
 
-	private int errorCode;
+  private int errorCode;
 
-	private String errorMessage;
+  private String errorMessage;
 
-	private String errorDescription;
-
+  private String errorDescription;
 }

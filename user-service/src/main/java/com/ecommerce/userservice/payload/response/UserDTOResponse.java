@@ -15,24 +15,32 @@ import org.springframework.hateoas.server.core.Relation;
 @ToString
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonPropertyOrder({ "emailId", "password", "firstName", "lastName", "avatarName", "age", "enabled", "role" })
+@JsonPropertyOrder({
+  "emailId",
+  "password",
+  "firstName",
+  "lastName",
+  "avatarName",
+  "age",
+  "enabled",
+  "role"
+})
 @Relation(collectionRelation = "users", itemRelation = "user")
 public class UserDTOResponse extends CollectionModel<UserDTOResponse> {
 
-	private String emailId;
+  private String emailId;
 
-	private String password;
+  private String password;
 
-	private String avatarName;
+  private String avatarName;
 
-	private String firstName;
+  private String firstName;
 
-	private String lastName;
+  private String lastName;
 
-	private int age;
+  private int age;
 
-	private boolean isEnabled;
+  private boolean isEnabled;
 
-	private Role role;
-
+  private Role role;
 }

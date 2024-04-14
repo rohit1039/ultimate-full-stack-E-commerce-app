@@ -15,28 +15,30 @@ import lombok.*;
 @ToString
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonPropertyOrder({ "emailID", "firstName", "lastName", "avatarName", "age" })
+@JsonPropertyOrder({"emailID", "firstName", "lastName", "avatarName", "age"})
 public class UpdateUserDTO {
 
-	@Email(regexp = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@" + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\"
-			+ ".[A-Za-z]{2,})$")
-	@NotBlank
-	@Schema(description = "username of the user", example = "testuser@gmail.com")
-	private String emailID;
+  @Email(
+      regexp =
+          "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
+              + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\"
+              + ".[A-Za-z]{2,})$")
+  @NotBlank
+  @Schema(description = "username of the user", example = "testuser@gmail.com")
+  private String emailID;
 
-	@Schema(description = "display picture of the user", example = "default.png")
-	private String avatarName;
+  @Schema(description = "display picture of the user", example = "default.png")
+  private String avatarName;
 
-	@NotBlank
-	@Schema(description = "firstname of the user", example = "Test")
-	private String firstName;
+  @NotBlank
+  @Schema(description = "firstname of the user", example = "Test")
+  private String firstName;
 
-	@NotBlank
-	@Schema(description = "lastname of the user", example = "User")
-	private String lastName;
+  @NotBlank
+  @Schema(description = "lastname of the user", example = "User")
+  private String lastName;
 
-	@Positive
-	@Schema(description = "age of the user", example = "1")
-	private int age;
-
+  @Positive
+  @Schema(description = "age of the user", example = "1")
+  private int age;
 }

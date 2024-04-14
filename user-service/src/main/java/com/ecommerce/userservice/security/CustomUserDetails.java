@@ -1,12 +1,11 @@
 package com.ecommerce.userservice.security;
 
 import com.ecommerce.userservice.model.User;
+import java.util.Collection;
+import java.util.Set;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -15,54 +14,53 @@ import java.util.Set;
 @Builder
 public class CustomUserDetails implements UserDetails {
 
-	private String username;
+  private String username;
 
-	private transient String password; // don't show up on serialized places.
+  private transient String password; // don't show up on serialized places.
 
-	private transient User user; // user for only login operation, don't use in JWT.
+  private transient User user; // user for only login operation, don't use in JWT.
 
-	private Set<GrantedAuthority> authorities;
+  private Set<GrantedAuthority> authorities;
 
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
 
-		return authorities;
-	}
+    return authorities;
+  }
 
-	@Override
-	public String getPassword() {
+  @Override
+  public String getPassword() {
 
-		return password;
-	}
+    return password;
+  }
 
-	@Override
-	public String getUsername() {
+  @Override
+  public String getUsername() {
 
-		return username;
-	}
+    return username;
+  }
 
-	@Override
-	public boolean isAccountNonExpired() {
+  @Override
+  public boolean isAccountNonExpired() {
 
-		return true;
-	}
+    return true;
+  }
 
-	@Override
-	public boolean isAccountNonLocked() {
+  @Override
+  public boolean isAccountNonLocked() {
 
-		return true;
-	}
+    return true;
+  }
 
-	@Override
-	public boolean isCredentialsNonExpired() {
+  @Override
+  public boolean isCredentialsNonExpired() {
 
-		return true;
-	}
+    return true;
+  }
 
-	@Override
-	public boolean isEnabled() {
+  @Override
+  public boolean isEnabled() {
 
-		return true;
-	}
-
+    return true;
+  }
 }

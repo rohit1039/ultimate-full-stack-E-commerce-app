@@ -7,11 +7,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
-		registry.addResourceHandler("/category-images/**")
-			.addResourceLocations("file:" + System.getProperty("category.dir") + "/category-images/");
-	}
-
+    registry
+        .addResourceHandler("/category-images/**")
+        .addResourceLocations("file:" + System.getProperty("category.dir") + "/category-images/");
+  }
 }

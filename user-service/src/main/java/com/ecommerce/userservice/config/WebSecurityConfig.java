@@ -29,111 +29,107 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
-	private final CustomUserDetailsService customUserDetailsService;
+  public static final String DEFAULT_ADMIN_USER = "rohitparida0599@gmail.com";
+  private final CustomUserDetailsService customUserDetailsService;
+  private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+  private final JwtAuthenticationFilter authenticationFilter;
 
-	private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+  /**
+   * This SecurityFilterChain is used to allow or restrict users in order to access certain
+   * resources
+   *
+   * @param http to get http requests
+   * @return chain of authorized http requests
+   */
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-	private final JwtAuthenticationFilter authenticationFilter;
+    http.cors()
+        .and()
+        .csrf()
+        .disable()
+        .authorizeHttpRequests()
+        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**")
+        .permitAll()
+        .requestMatchers(HttpMethod.POST, "/v1/auth/**")
+        .permitAll()
+        .requestMatchers(HttpMethod.PATCH, "/v1/auth/**")
+        .permitAll()
+        .requestMatchers(HttpMethod.PATCH, "/users/**")
+        .permitAll()
+        .requestMatchers(HttpMethod.GET, "/v1/all", "/v1/get/**", "/v1/export/**")
+        .hasRole("ADMIN")
+        .requestMatchers(HttpMethod.GET, "/v1/current/role")
+        .permitAll()
+        .requestMatchers(HttpMethod.DELETE)
+        .hasRole("ADMIN")
+        .requestMatchers(HttpMethod.PATCH)
+        .hasRole("ADMIN")
+        .anyRequest()
+        .fullyAuthenticated()
+        .and()
+        .exceptionHandling()
+        .authenticationEntryPoint(authenticationEntryPoint)
+        .and()
+        .sessionManagement()
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .and()
+        .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .authenticationProvider(daoAuthenticationProvider());
+    return http.build();
+  }
 
-	public static final String DEFAULT_ADMIN_USER = "rohitparida0599@gmail.com";
+  /**
+   * This PasswordEncoder is used to encrypt user's password
+   *
+   * @return BCryptPasswordEncoder
+   */
+  @Bean
+  public PasswordEncoder passwordEncoder() {
 
-	/**
-	 * This SecurityFilterChain is used to allow or restrict users in order to access
-	 * certain resources
-	 * @param http to get http requests
-	 * @return chain of authorized http requests
-	 */
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    return new BCryptPasswordEncoder();
+  }
 
-		http.cors()
-			.and()
-			.csrf()
-			.disable()
-			.authorizeHttpRequests()
-			.requestMatchers("/v3/api-docs/**", "/swagger-ui/**")
-			.permitAll()
-			.requestMatchers(HttpMethod.POST, "/v1/auth/**")
-			.permitAll()
-			.requestMatchers(HttpMethod.PATCH, "/v1/auth/**")
-			.permitAll()
-			.requestMatchers(HttpMethod.PATCH, "/users/**")
-			.permitAll()
-			.requestMatchers(HttpMethod.GET, "/v1/all", "/v1/get/**", "/v1/export/**")
-			.hasRole("ADMIN")
-			.requestMatchers(HttpMethod.GET, "/v1/current/role")
-			.permitAll()
-			.requestMatchers(HttpMethod.DELETE)
-			.hasRole("ADMIN")
-			.requestMatchers(HttpMethod.PATCH)
-			.hasRole("ADMIN")
-			.anyRequest()
-			.fullyAuthenticated()
-			.and()
-			.exceptionHandling()
-			.authenticationEntryPoint(authenticationEntryPoint)
-			.and()
-			.sessionManagement()
-			.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			.and()
-			.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
-			.authenticationProvider(daoAuthenticationProvider());
+  public DaoAuthenticationProvider daoAuthenticationProvider() {
 
-		return http.build();
-	}
+    DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+    daoAuthenticationProvider.setUserDetailsService(customUserDetailsService);
+    daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+    return daoAuthenticationProvider;
+  }
 
-	/**
-	 * This PasswordEncoder is used to encrypt user's password
-	 * @return BCryptPasswordEncoder
-	 */
-	@Bean
-	public PasswordEncoder passwordEncoder() {
+  @Bean
+  public AuthenticationManager authenticationManager(
+      AuthenticationConfiguration authenticationConfiguration) throws Exception {
 
-		return new BCryptPasswordEncoder();
-	}
+    return authenticationConfiguration.getAuthenticationManager();
+  }
 
-	public DaoAuthenticationProvider daoAuthenticationProvider() {
+  /**
+   * This method is used to configure CORs policy with client i.e. React
+   *
+   * @return allowed CORs origin http methods
+   */
+  @Bean
+  public FilterRegistrationBean coresFilter() {
 
-		DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-		daoAuthenticationProvider.setUserDetailsService(customUserDetailsService);
-		daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
-
-		return daoAuthenticationProvider;
-	}
-
-	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-			throws Exception {
-
-		return authenticationConfiguration.getAuthenticationManager();
-	}
-
-	/**
-	 * This method is used to configure CORs policy with client i.e. React
-	 * @return allowed CORs origin http methods
-	 */
-	@Bean
-	public FilterRegistrationBean coresFilter() {
-
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		CorsConfiguration corsConfiguration = new CorsConfiguration();
-		corsConfiguration.setAllowCredentials(true);
-		corsConfiguration.addAllowedOriginPattern("*");
-		corsConfiguration.addAllowedHeader("Authorization");
-		corsConfiguration.addAllowedHeader("Content-Type");
-		corsConfiguration.addAllowedHeader("Accept");
-		corsConfiguration.addAllowedMethod("POST");
-		corsConfiguration.addAllowedMethod("GET");
-		corsConfiguration.addAllowedMethod("DELETE");
-		corsConfiguration.addAllowedMethod("PUT");
-		corsConfiguration.addAllowedMethod("PATCH");
-		corsConfiguration.addAllowedMethod("OPTIONS");
-		corsConfiguration.setMaxAge(3600L);
-		source.registerCorsConfiguration("/**", corsConfiguration);
-		FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
-		bean.setOrder(-110);
-
-		return bean;
-	}
-
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    CorsConfiguration corsConfiguration = new CorsConfiguration();
+    corsConfiguration.setAllowCredentials(true);
+    corsConfiguration.addAllowedOriginPattern("*");
+    corsConfiguration.addAllowedHeader("Authorization");
+    corsConfiguration.addAllowedHeader("Content-Type");
+    corsConfiguration.addAllowedHeader("Accept");
+    corsConfiguration.addAllowedMethod("POST");
+    corsConfiguration.addAllowedMethod("GET");
+    corsConfiguration.addAllowedMethod("DELETE");
+    corsConfiguration.addAllowedMethod("PUT");
+    corsConfiguration.addAllowedMethod("PATCH");
+    corsConfiguration.addAllowedMethod("OPTIONS");
+    corsConfiguration.setMaxAge(3600L);
+    source.registerCorsConfiguration("/**", corsConfiguration);
+    FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
+    bean.setOrder(-110);
+    return bean;
+  }
 }

@@ -10,12 +10,11 @@ import org.springframework.data.mongodb.core.mapping.event.BeforeConvertEvent;
 @RequiredArgsConstructor
 public class ProductModelListener extends AbstractMongoEventListener<Product> {
 
-	private final MongoSequenceGenerator sequenceGenerator;
+  private final MongoSequenceGenerator sequenceGenerator;
 
-	@Override
-	public void onBeforeConvert(BeforeConvertEvent<Product> event) {
+  @Override
+  public void onBeforeConvert(BeforeConvertEvent<Product> event) {
 
-		event.getSource().setProductId(sequenceGenerator.generateSequence(Product.SEQUENCE_NAME));
-	}
-
+    event.getSource().setProductId(sequenceGenerator.generateSequence(Product.SEQUENCE_NAME));
+  }
 }

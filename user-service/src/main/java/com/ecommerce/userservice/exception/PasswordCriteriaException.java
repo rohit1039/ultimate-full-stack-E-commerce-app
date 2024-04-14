@@ -2,9 +2,8 @@ package com.ecommerce.userservice.exception;
 
 public class PasswordCriteriaException extends RuntimeException {
 
-	public PasswordCriteriaException(String message) {
+  public PasswordCriteriaException(String message) {
 
-		super(message);
-	}
-
+    super(message);
+  }
 }

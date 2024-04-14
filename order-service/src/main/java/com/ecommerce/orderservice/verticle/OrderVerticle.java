@@ -8,12 +8,11 @@ import org.slf4j.LoggerFactory;
 
 public class OrderVerticle extends AbstractVerticle {
 
-	private static final Logger LOG = LoggerFactory.getLogger(OrderVerticle.class.getName());
+  private static final Logger LOG = LoggerFactory.getLogger(OrderVerticle.class.getName());
 
-	public static void placeOrder(Router parentRoute) {
+  public static void placeOrder(Router parentRoute) {
 
-		LOG.info("Deployed verticle: {} Successfully!", OrderVerticle.class.getName());
-		parentRoute.post("/v1/place-order/:productId").handler(new OrderHandler());
-	}
-
+    LOG.info("Deployed verticle: {} Successfully!", OrderVerticle.class.getName());
+    parentRoute.post("/v1/place-order/:productId").handler(new OrderHandler());
+  }
 }
