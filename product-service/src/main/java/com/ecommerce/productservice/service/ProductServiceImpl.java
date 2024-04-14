@@ -258,6 +258,7 @@ public class ProductServiceImpl implements ProductService {
 	 * @param quantity The quantity to be reduced.
 	 */
 	@Override
+	@Caching(evict = { @CacheEvict(value = CACHE_NAME, key = "#productId", allEntries = true) })
 	public void reduceProductCount(Integer productId, String productSize, Integer quantity) {
 		// Retrieve the product from the database
 		ProductResponseDTO productInDB = this.getProductById(productId);
@@ -273,6 +274,10 @@ public class ProductServiceImpl implements ProductService {
 			.filter(size -> size.getName().equals(productSize))
 			.peek(size -> size.setQuantity(size.getQuantity() - quantity))
 			.forEach(s -> updatedProductQuantity.set(s.getQuantity()));
+		if (updatedProductQuantity.intValue() <= 0) {
+			LOGGER.error("Product with id: {} and size: {} is out of stock!", productId, productSize);
+			throw new RuntimeException("Product of size: " + productSize + " is out of stock!");
+		}
 		// Update the total product count
 		Integer totalProducts = Math.toIntExact(product.getProductSizes()
 			.stream()
