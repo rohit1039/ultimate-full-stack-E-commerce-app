@@ -34,18 +34,31 @@ public class OrderHandler implements Handler<RoutingContext> {
     LOG.info("*** Calling product-service with productId: {} ***", productId);
     MultiMap entries = routingContext.request().params();
     updateProductCount(productId, entries);
-    this.orderService.saveOrder(ConfigLoader.mongoConfig(), orderRequest);
-    LOG.info("*** Order placed successfully ***");
+    this.orderService
+        .saveOrder(ConfigLoader.mongoConfig(), orderRequest)
+        .onSuccess(
+            response -> {
+              LOG.info("*** Order placed successfully ***");
+              routingContext
+                  .response()
+                  .putHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
+                  .setStatusCode(CREATED_STATUS_CODE)
+                  .end(new JsonObject().put("order_id", response.getOrderId()).encodePrettily());
+            })
+        .onFailure(
+            error -> {
+              LOG.info("Some error occurred while saving order details: {}", error.getMessage());
+              routingContext
+                  .response()
+                  .putHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
+                  .setStatusCode(ERROR_STATUS_CODE)
+                  .end(error.getMessage());
+            });
     try {
       LOG.info("\n Incoming request: {}", objectMapper.writeValueAsString(orderRequest));
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
-    routingContext
-        .response()
-        .putHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
-        .setStatusCode(SUCCESS_STATUS_CODE)
-        .end("Order placed successfully!");
   }
 
   private static void updateProductCount(long productId, MultiMap entries) {
