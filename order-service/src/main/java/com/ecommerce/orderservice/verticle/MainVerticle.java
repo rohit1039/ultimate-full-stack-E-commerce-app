@@ -18,9 +18,11 @@ public class MainVerticle extends AbstractVerticle {
 
     final Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create().setHandleFileUploads(true));
-    vertx.rxDeployVerticle(new OrderVerticle());
+    vertx.deployVerticle(new OrderVerticle());
+    LOG.info("Deployed verticle: {} Successfully!", OrderVerticle.class.getName());
     // placing order and save order details in database
     OrderVerticle.placeOrder(router);
+
     vertx
         .createHttpServer()
         .requestHandler(router)

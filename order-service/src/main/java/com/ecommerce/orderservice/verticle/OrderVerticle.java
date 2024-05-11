@@ -12,7 +12,6 @@ public class OrderVerticle extends AbstractVerticle {
 
   public static void placeOrder(Router parentRoute) {
 
-    LOG.info("Deployed verticle: {} Successfully!", OrderVerticle.class.getName());
     parentRoute.post("/v1/place-order/:productId").handler(new OrderHandler());
   }
 }

@@ -2,6 +2,7 @@ package com.ecommerce.orderservice.payload.request;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import io.vertx.core.json.JsonObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,4 +32,8 @@ public class OrderRequest {
   private String pinCode;
 
   private String cityName;
+
+  public JsonObject toJsonObject(OrderRequest orderRequest) {
+    return JsonObject.mapFrom(orderRequest);
+  }
 }
