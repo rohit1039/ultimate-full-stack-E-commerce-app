@@ -14,8 +14,11 @@ public class ConfigLoader {
   private static final String DB_NAME = "orderDB";
 
   public static MongoClient mongoConfig() {
+
     final JsonObject mongoConfig =
         new JsonObject().put("connection_string", DB_URI).put("db_name", DB_NAME);
+    LOG.info("MongoClient configured successfully!");
+
     return MongoClient.createShared(vertx, mongoConfig);
   }
 }

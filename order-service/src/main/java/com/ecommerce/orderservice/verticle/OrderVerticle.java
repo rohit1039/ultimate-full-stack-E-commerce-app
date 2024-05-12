@@ -8,6 +8,7 @@ import com.ecommerce.orderservice.payload.request.OrderRequest;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
 import com.ecommerce.orderservice.service.OrderService;
 import com.ecommerce.orderservice.service.OrderServiceImpl;
+import com.ecommerce.orderservice.validator.RequestValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Promise;
@@ -40,17 +41,16 @@ public class OrderVerticle extends AbstractVerticle {
 
   public void handle(RoutingContext routingContext) {
 
-    try {
-      JsonObject requestBody = routingContext.body().asJsonObject();
-      OrderRequest orderRequest = requestBody.mapTo(OrderRequest.class);
+    JsonObject requestBody = routingContext.body().asJsonObject();
+    OrderRequest orderRequest = requestBody.mapTo(OrderRequest.class);
+    boolean validationErrors = new RequestValidator().validateRequest(routingContext, orderRequest);
+    if (!validationErrors) {
       createOrder(routingContext);
-      try {
-        LOG.info("\n Incoming request: {}", new ObjectMapper().writeValueAsString(orderRequest));
-      } catch (JsonProcessingException e) {
-        throw new RuntimeException(e);
-      }
-    } catch (Exception e) {
-      LOG.error("Some error occurred: {}", e.getMessage());
+    }
+    try {
+      LOG.info("\n Incoming request: {}", new ObjectMapper().writeValueAsString(orderRequest));
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
     }
   }
 

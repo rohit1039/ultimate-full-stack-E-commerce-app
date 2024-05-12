@@ -1,5 +1,7 @@
 package com.ecommerce.orderservice.dao;
 
+import static com.ecommerce.orderservice.constant.APIConstants.COLLECTION_NAME;
+
 import com.ecommerce.orderservice.payload.request.OrderRequest;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
 import io.vertx.core.Future;
@@ -16,7 +18,7 @@ public class OrderDaoImpl implements OrderDao {
     return Future.future(
         f ->
             mongoClient
-                .rxSave("orders", orderRequest.toJsonObject(orderRequest))
+                .rxSave(COLLECTION_NAME, orderRequest.toJsonObject(orderRequest))
                 .doFinally(mongoClient::rxClose)
                 .subscribe(
                     orderId -> {
