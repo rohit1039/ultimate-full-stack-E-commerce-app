@@ -9,6 +9,7 @@ public class APIConstants {
   public static final String PRODUCT_SIZE = "productSize";
   public static final String CONTENT_TYPE = "Content-Type";
   public static final String JSON_CONTENT_TYPE = "application/json";
+  public static final String ORDER_ID = "order_id";
   public static final Integer SUCCESS_STATUS_CODE = 200;
   public static final Integer ERROR_STATUS_CODE = 500;
   public static final Integer CREATED_STATUS_CODE = 201;
