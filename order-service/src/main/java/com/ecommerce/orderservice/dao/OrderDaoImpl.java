@@ -13,7 +13,6 @@ public class OrderDaoImpl implements OrderDao {
   @Override
   public Future<OrderResponse> saveOrderIntoDB(MongoClient mongoClient, OrderRequest orderRequest) {
 
-    OrderResponse orderResponse = new OrderResponse();
     return Future.future(
         f ->
             mongoClient
@@ -21,8 +20,7 @@ public class OrderDaoImpl implements OrderDao {
                 .doFinally(mongoClient::rxClose)
                 .subscribe(
                     orderId -> {
-                      orderResponse.setOrderId(orderId);
-                      f.complete(orderResponse);
+                      f.complete(OrderResponse.builder().orderId(orderId).build());
                     },
                     exception -> {
                       LOG.error("Database error occurred: {}", exception.getMessage());
