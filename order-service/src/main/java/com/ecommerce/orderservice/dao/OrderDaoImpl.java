@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.dao;
 
 import static com.ecommerce.orderservice.constant.APIConstants.COLLECTION_NAME;
 
-import com.ecommerce.orderservice.payload.request.OrderRequest;
+import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
 import io.vertx.core.Future;
 import io.vertx.rxjava3.ext.mongo.MongoClient;

@@ -2,13 +2,11 @@ package com.ecommerce.orderservice.validator;
 
 import static com.ecommerce.orderservice.constant.APIConstants.CONTENT_TYPE;
 import static com.ecommerce.orderservice.constant.APIConstants.JSON_CONTENT_TYPE;
-import static java.util.Objects.isNull;
 
-import com.ecommerce.orderservice.payload.request.OrderRequest;
+import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,12 +19,13 @@ public class RequestValidator {
 
   public boolean validateRequest(RoutingContext routingContext, OrderRequest orderRequest) {
 
-    if (StringUtils.isBlank(orderRequest.getFullName()) || isNull(orderRequest.getFullName())) {
-      errors.put("full_name", "full_name cannot be null or empty");
+    if (orderRequest.getUserId() == null || orderRequest.getUserId() <= 0) {
+      errors.put("user_id", "user_id cannot be null, zero or negative");
     }
-    if (StringUtils.isBlank(orderRequest.getAddressLine1Txt())
-        || isNull(orderRequest.getAddressLine1Txt())) {
-      errors.put("address_line1_txt", "address_line1_txt is mandatory to place an order");
+    if (orderRequest.getProductId() == null || orderRequest.getProductId() <= 0) {
+      errors.put(
+          "product_id",
+          "product_id is mandatory to place an order, cannot be null, zero or negative");
     }
     if (errors.size() > 0) {
       LOG.error("*** Request validation errors found ***");

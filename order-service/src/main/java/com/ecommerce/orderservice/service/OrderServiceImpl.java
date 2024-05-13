@@ -5,7 +5,7 @@ import static com.ecommerce.orderservice.constant.APIConstants.PRODUCT_SIZE;
 
 import com.ecommerce.orderservice.dao.OrderDao;
 import com.ecommerce.orderservice.dao.OrderDaoImpl;
-import com.ecommerce.orderservice.payload.request.OrderRequest;
+import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
