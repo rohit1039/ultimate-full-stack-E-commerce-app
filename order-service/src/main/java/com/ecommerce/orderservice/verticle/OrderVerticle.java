@@ -4,18 +4,19 @@ import static com.ecommerce.orderservice.constant.APIConstants.*;
 import static com.ecommerce.orderservice.constant.APIConstants.ERROR_STATUS_CODE;
 
 import com.ecommerce.orderservice.config.ConfigLoader;
+import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
 import com.ecommerce.orderservice.service.OrderService;
 import com.ecommerce.orderservice.service.OrderServiceImpl;
 import com.ecommerce.orderservice.validator.RequestValidator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,61 +33,33 @@ public class OrderVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startFuture) {
+
     placeOrder(router);
   }
 
   public void placeOrder(Router parentRoute) {
-    parentRoute.post("/v1/place-order/:productId").handler(this::handle);
+
+    parentRoute.post(CREATE_ORDER_ENDPOINT).handler(this::handle);
   }
 
   public void handle(RoutingContext routingContext) {
 
-    JsonObject requestBody = routingContext.body().asJsonObject();
-    OrderRequest orderRequest = requestBody.mapTo(OrderRequest.class);
+    List<OrderItemRequest> orderItemList =
+        routingContext.body().asJsonArray().stream()
+            .map(order -> new JsonObject(order.toString()).mapTo(OrderItemRequest.class))
+            .collect(Collectors.toList());
+    OrderRequest orderRequest = new OrderRequest();
+    orderRequest.setOrderItemList(orderItemList);
     boolean validationErrors = new RequestValidator().validateRequest(routingContext, orderRequest);
     if (!validationErrors) {
-      createOrder(routingContext);
+      createOrder(routingContext, orderRequest);
     }
-    try {
-      LOG.info("\n Incoming request: {}", new ObjectMapper().writeValueAsString(orderRequest));
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
+
+    LOG.info("\n Incoming request: {}", OrderRequest.toJsonObject(orderRequest).encodePrettily());
   }
 
-  private void createOrder(RoutingContext routingContext) {
+  private void createOrder(RoutingContext routingContext, OrderRequest orderRequest) {
 
-    this.orderService
-        .saveOrder(ConfigLoader.mongoConfig(), routingContext)
-        .onSuccess(
-            response -> {
-              LOG.info("*** Order placed successfully ***");
-              handleSuccessResponse(routingContext, response);
-            })
-        .onFailure(
-            error -> {
-              LOG.info("Some error occurred while saving order details: {}", error.getMessage());
-              handleErrorResponse(routingContext, error);
-            });
-  }
-
-  private void handleSuccessResponse(RoutingContext routingContext, OrderResponse response) {
-
-    routingContext
-        .response()
-        .putHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
-        .setStatusCode(CREATED_STATUS_CODE)
-        .rxEnd(new OrderResponse().buildOrderResponse(response.getOrderId()).encodePrettily())
-        .subscribe();
-  }
-
-  private void handleErrorResponse(RoutingContext routingContext, Throwable error) {
-
-    routingContext
-        .response()
-        .putHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
-        .setStatusCode(ERROR_STATUS_CODE)
-        .rxEnd(error.getMessage())
-        .subscribe();
+    this.orderService.saveOrder(ConfigLoader.mongoConfig(), orderRequest, routingContext);
   }
 }

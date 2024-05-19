@@ -3,7 +3,6 @@ package com.ecommerce.orderservice.payload.request.order;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.vertx.core.json.JsonObject;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,11 +13,13 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class OrderRequest {
+public class OrderItemRequest {
 
-  private List<OrderItemRequest> orderItemList;
+  private Long productId;
+  private String productSize;
+  private Long quantity;
 
-  public static JsonObject toJsonObject(OrderRequest orderRequest) {
-    return JsonObject.mapFrom(orderRequest);
+  public JsonObject toJsonObject(OrderItemRequest orderItemRequest) {
+    return JsonObject.mapFrom(orderItemRequest);
   }
 }

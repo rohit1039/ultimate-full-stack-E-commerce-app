@@ -19,14 +19,6 @@ public class RequestValidator {
 
   public boolean validateRequest(RoutingContext routingContext, OrderRequest orderRequest) {
 
-    if (orderRequest.getUserId() == null || orderRequest.getUserId() <= 0) {
-      errors.put("user_id", "user_id cannot be null, zero or negative");
-    }
-    if (orderRequest.getProductId() == null || orderRequest.getProductId() <= 0) {
-      errors.put(
-          "product_id",
-          "product_id is mandatory to place an order, cannot be null, zero or negative");
-    }
     if (errors.size() > 0) {
       LOG.error("*** Request validation errors found ***");
       LOG.warn("*** Unable to process your order ***");

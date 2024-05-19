@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OrderDaoImpl implements OrderDao {
+
   private static final Logger LOG = LoggerFactory.getLogger(OrderDaoImpl.class.getName());
 
   @Override
@@ -18,14 +19,10 @@ public class OrderDaoImpl implements OrderDao {
     return Future.future(
         f ->
             mongoClient
-                .rxSave(COLLECTION_NAME, orderRequest.toJsonObject(orderRequest))
+                .rxSave(COLLECTION_NAME, OrderRequest.toJsonObject(orderRequest))
                 .doFinally(mongoClient::rxClose)
                 .subscribe(
-                    orderId -> {
-                      f.complete(OrderResponse.builder().orderId(orderId).build());
-                    },
-                    exception -> {
-                      LOG.error("Database error occurred: {}", exception.getMessage());
-                    }));
+                    orderId -> f.complete(OrderResponse.builder().orderId(orderId).build()),
+                    exception -> LOG.error("Database error occurred: {}", exception.getMessage())));
   }
 }
