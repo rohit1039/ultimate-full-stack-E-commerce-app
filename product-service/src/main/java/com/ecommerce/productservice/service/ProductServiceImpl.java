@@ -321,7 +321,7 @@ public class ProductServiceImpl implements ProductService {
     this.mongoTemplate.findAndModify(query2, updateDefinition, Product.class);
     // Log a message indicating that the product quantity was updated successfully
     LOGGER.info(
-        "***** Product with Id: {} and quantity: {} ordered successfully *****",
+        "***** Product with Id: {} and quantity: {} updated successfully *****",
         productId,
         quantity);
   }
