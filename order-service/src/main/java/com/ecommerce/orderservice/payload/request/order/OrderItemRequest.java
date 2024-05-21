@@ -19,7 +19,7 @@ public class OrderItemRequest {
   private String productSize;
   private Long quantity;
 
-  public JsonObject toJsonObject(OrderItemRequest orderItemRequest) {
-    return JsonObject.mapFrom(orderItemRequest);
+  public static String toJsonObject(OrderItemRequest orderItemRequest) {
+    return JsonObject.mapFrom(orderItemRequest).encodePrettily();
   }
 }

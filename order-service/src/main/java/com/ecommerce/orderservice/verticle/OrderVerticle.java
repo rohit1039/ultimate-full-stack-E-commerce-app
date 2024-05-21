@@ -1,12 +1,10 @@
 package com.ecommerce.orderservice.verticle;
 
 import static com.ecommerce.orderservice.constant.APIConstants.*;
-import static com.ecommerce.orderservice.constant.APIConstants.ERROR_STATUS_CODE;
 
 import com.ecommerce.orderservice.config.ConfigLoader;
 import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
-import com.ecommerce.orderservice.payload.response.OrderResponse;
 import com.ecommerce.orderservice.service.OrderService;
 import com.ecommerce.orderservice.service.OrderServiceImpl;
 import com.ecommerce.orderservice.validator.RequestValidator;
@@ -55,7 +53,7 @@ public class OrderVerticle extends AbstractVerticle {
       createOrder(routingContext, orderRequest);
     }
 
-    LOG.info("\n Incoming request: {}", OrderRequest.toJsonObject(orderRequest).encodePrettily());
+    LOG.info("\n Incoming request: {}", OrderRequest.toJson(orderRequest).encodePrettily());
   }
 
   private void createOrder(RoutingContext routingContext, OrderRequest orderRequest) {

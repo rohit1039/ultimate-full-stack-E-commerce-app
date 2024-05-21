@@ -18,7 +18,7 @@ public class OrderRequest {
 
   private List<OrderItemRequest> orderItemList;
 
-  public static JsonObject toJsonObject(OrderRequest orderRequest) {
+  public static JsonObject toJson(OrderRequest orderRequest) {
     return JsonObject.mapFrom(orderRequest);
   }
 }
