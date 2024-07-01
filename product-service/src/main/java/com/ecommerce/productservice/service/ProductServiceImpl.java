@@ -286,7 +286,7 @@ public class ProductServiceImpl implements ProductService {
     ProductResponseDTO productInDB = this.getProductById(productId);
     Product product = this.modelMapper.map(productInDB, Product.class);
     // Check if the provided quantity is less than the existing product count
-    if (product.getProductCount() < quantity) {
+    if (product.getProductCount() > 0 && product.getProductCount() < quantity) {
       throw new RuntimeException(
           "Provided product quantity shouldn't be greater than existing product count");
     }
