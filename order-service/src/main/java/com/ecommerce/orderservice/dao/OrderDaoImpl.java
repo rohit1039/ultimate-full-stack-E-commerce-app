@@ -1,13 +1,12 @@
 package com.ecommerce.orderservice.dao;
 
 import static com.ecommerce.orderservice.constant.APIConstants.*;
-import static io.vertx.core.Future.future;
 
-import com.ecommerce.orderservice.exception.GlobalException;
 import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
 import io.vertx.core.Future;
+import io.vertx.rxjava3.core.Promise;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -25,56 +24,78 @@ public class OrderDaoImpl implements OrderDao {
 
   private static final WebClient WEB_CLIENT = WebClient.create(VERTX);
 
+  /**
+   * Saves an order in the database.
+   *
+   * @param mongoClient the MongoDB client
+   * @param routingContext the routing context
+   * @param orderRequest the order request
+   * @return a Future that will complete with the order response
+   */
   @Override
   public Future<OrderResponse> saveOrderInDb(
       MongoClient mongoClient, RoutingContext routingContext, OrderRequest orderRequest) {
 
     List<OrderItemRequest> orderItems = orderRequest.getOrderItemList();
 
-    LOG.info("*** Calling product-service to check if selected products is/are in stock ***");
-    List<OrderItemRequest> successOrderItems = callToProductService(orderItems);
-
-    return future(
-        promise -> {
-          if (successOrderItems.size() > 0) {
-            mongoClient
-                .rxSave(COLLECTION_NAME, OrderRequest.toJson(orderRequest))
-                .doFinally(mongoClient::rxClose)
-                .subscribe(
-                    orderId -> {
-                      promise.complete(OrderResponse.builder().orderId(orderId).build());
-                    },
-                    error -> {
-                      LOG.error(
-                          "Some error occurred while saving order into database: {}",
-                          error.getMessage());
-                      promise.fail("Unable to save order into database");
-                    });
-          } else {
-            throw new GlobalException(
-                "Unable to place your orders, as selected products not in stock");
-          }
-        });
+    return callToProductService(orderItems)
+        .compose(
+            successOrderItems -> {
+              if (successOrderItems.size() > 0) {
+                orderRequest.setOrderItemList(successOrderItems);
+                Promise<OrderResponse> promise = Promise.promise();
+                mongoClient
+                    .rxSave(COLLECTION_NAME, OrderRequest.toJson(orderRequest))
+                    .doFinally(mongoClient::close)
+                    .subscribe(
+                        orderId ->
+                            promise.complete(OrderResponse.builder().orderId(orderId).build()),
+                        error -> {
+                          LOG.error(
+                              "Some error occurred while saving order into database: {}",
+                              error.getMessage());
+                          promise.fail("Unable to save order into database");
+                        });
+                return promise.future();
+              } else {
+                return Future.failedFuture("No successful order items to save");
+              }
+            });
   }
 
-  private List<OrderItemRequest> callToProductService(List<OrderItemRequest> orderItems) {
+  /**
+   * Calls the product service to validate the order items.
+   *
+   * @param orderItems the list of order items
+   * @return a Future that will complete with the list of successfully validated order items
+   */
+  private Future<List<OrderItemRequest>> callToProductService(List<OrderItemRequest> orderItems) {
+    List<Future<Void>> futures = new ArrayList<>();
 
-    List<OrderItemRequest> successOrderItems = new ArrayList<>();
+    for (OrderItemRequest orderItem : orderItems) {
+      Promise<Void> promise = Promise.promise();
+      LOG.info("*** Calling product-service for productId: {} ***", orderItem.getProductId());
+      WEB_CLIENT
+          .put(PRODUCT_PORT, PRODUCT_HOSTNAME, PRODUCT_ENDPOINT + orderItem.getProductId())
+          .addQueryParam(PRODUCT_QUANTITY, String.valueOf(orderItem.getQuantity()))
+          .addQueryParam(PRODUCT_SIZE, orderItem.getProductSize())
+          .send()
+          .subscribe(
+              ar -> {
+                if (ar.statusCode() == SUCCESS_STATUS_CODE) {
+                  LOG.info("Received success response for productId: {}", orderItem.getProductId());
+                  promise.complete();
+                } else {
+                  LOG.error(
+                      "Some error occurred in product-service for productId: {}",
+                      orderItem.getProductId());
+                  promise.fail(ar.bodyAsString());
+                }
+              });
 
-    orderItems.forEach(
-        orderItem ->
-            WEB_CLIENT
-                .put(PRODUCT_PORT, PRODUCT_HOSTNAME, PRODUCT_ENDPOINT + orderItem.getProductId())
-                .addQueryParam(PRODUCT_QUANTITY, String.valueOf(orderItem.getQuantity()))
-                .addQueryParam(PRODUCT_SIZE, orderItem.getProductSize())
-                .rxSend()
-                .subscribe(
-                    productRes -> {
-                      if (productRes.statusCode() == SUCCESS_STATUS_CODE) {
-                        successOrderItems.add(orderItem);
-                      }
-                    }));
+      futures.add(promise.future());
+    }
 
-    return successOrderItems;
+    return Future.all(futures).map(v -> orderItems);
   }
 }
