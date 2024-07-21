@@ -16,9 +16,7 @@ import com.ecommerce.productservice.payload.response.ProductResponseDTO;
 import com.ecommerce.productservice.repository.ProductRepository;
 import com.ecommerce.productservice.util.MongoSequenceGenerator;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -291,21 +289,31 @@ public class ProductServiceImpl implements ProductService {
 
     List<List<Size>> listOfSize = new ArrayList<>();
 
-    products.forEach(
-        actualProduct ->
-            productList.forEach(
-                product -> {
-                  listOfSize.add(
-                      product.getProductSizes().stream()
-                          .filter(
-                              size ->
-                                  product.getProductId().equals(actualProduct.getProductId())
-                                      && size.getName().equals(actualProduct.getProductSize()))
-                          .filter(size -> size.getQuantity() > 0)
-                          .toList());
-                }));
+    // Create a map of product IDs with its corresponding sizes
+    Map<Integer, List<Size>> productSizeMap =
+        productList.stream()
+            .collect(
+                Collectors.toMap(
+                    Product::getProductId,
+                    product ->
+                        product.getProductSizes().stream()
+                            .filter(size -> size.getQuantity() > 0)
+                            .toList()));
 
-    if (listOfSize.stream().filter(sizes -> sizes.size() >= 1).count() == products.size()) {
+    // Iterate over the products and collect matching sizes
+    products.forEach(
+        actualProduct -> {
+          List<Size> sizes = productSizeMap.get(actualProduct.getProductId());
+          if (sizes != null) {
+            List<Size> filteredSizes =
+                sizes.stream()
+                    .filter(size -> size.getName().equals(actualProduct.getProductSize()))
+                    .toList();
+            listOfSize.add(filteredSizes);
+          }
+        });
+
+    if (listOfSize.size() == products.size()) {
 
       products.forEach(
           prod -> {
