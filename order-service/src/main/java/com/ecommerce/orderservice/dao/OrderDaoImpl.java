@@ -35,10 +35,10 @@ public class OrderDaoImpl implements OrderDao {
   public Future<OrderResponse> saveOrderInDb(
       MongoClient mongoClient, RoutingContext routingContext, OrderRequest orderRequest) {
 
-    List<OrderItemRequest> orderItems = orderRequest.getOrderItemList();
+    List<OrderItemRequest> orderItems = orderRequest.getOrderItemRequest();
 
     return callToProductService(orderItems)
-        .compose(
+        .flatMap(
             orders -> {
               Promise<OrderResponse> promise = Promise.promise();
               mongoClient

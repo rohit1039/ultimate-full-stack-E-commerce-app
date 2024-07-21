@@ -1,13 +1,14 @@
 package com.ecommerce.orderservice.payload.request.order;
 
+import com.ecommerce.orderservice.payload.request.address.AddressRequest;
+import com.ecommerce.orderservice.payload.request.payment.PaymentRequest;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Data
 @NoArgsConstructor
@@ -16,7 +17,9 @@ import lombok.ToString;
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class OrderRequest {
 
-  private List<OrderItemRequest> orderItemList;
+  @NotNull private List<OrderItemRequest> orderItemRequest;
+  @Valid private AddressRequest addressRequest;
+  @Valid private PaymentRequest paymentRequest;
 
   public static JsonObject toJson(OrderRequest orderRequest) {
     return JsonObject.mapFrom(orderRequest);
