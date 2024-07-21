@@ -4,6 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.ecommerce.productservice.exception.ProductNotFoundException;
+import com.ecommerce.productservice.payload.request.OrderProductDTO;
 import com.ecommerce.productservice.payload.request.ProductRequestDTO;
 import com.ecommerce.productservice.payload.response.ProductResponseDTO;
 import com.ecommerce.productservice.service.ProductService;
@@ -310,13 +311,10 @@ public class ProductServiceController {
         @ApiResponse(responseCode = "404", description = "Product Not " + "Found"),
         @ApiResponse(responseCode = "500", description = "Some error occurred")
       })
-  @PutMapping("/v1/order-product/{productId}")
-  public ResponseEntity<Void> orderProduct(
-      @PathVariable Integer productId,
-      @RequestParam String productSize,
-      @RequestParam Integer quantity) {
+  @PutMapping("/v1/order")
+  public ResponseEntity<Void> orderProduct(@RequestBody List<OrderProductDTO> products) {
 
-    this.productService.reduceProductCount(productId, productSize, quantity);
+    this.productService.reduceProductCount(products);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

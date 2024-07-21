@@ -10,11 +10,13 @@ import com.ecommerce.productservice.exception.ProductNotFoundException;
 import com.ecommerce.productservice.exception.UnAuthorizedException;
 import com.ecommerce.productservice.model.Product;
 import com.ecommerce.productservice.model.Size;
+import com.ecommerce.productservice.payload.request.OrderProductDTO;
 import com.ecommerce.productservice.payload.request.ProductRequestDTO;
 import com.ecommerce.productservice.payload.response.ProductResponseDTO;
 import com.ecommerce.productservice.repository.ProductRepository;
 import com.ecommerce.productservice.util.MongoSequenceGenerator;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -275,55 +277,92 @@ public class ProductServiceImpl implements ProductService {
   /**
    * This method is used to reduce the quantity of a product.
    *
-   * @param productId The id of the product.
-   * @param productSize The size of the product.
-   * @param quantity The quantity to be reduced.
+   * @param products list of products
    */
   @Override
   @Caching(evict = {@CacheEvict(value = CACHE_NAME, key = "#productId", allEntries = true)})
-  public void reduceProductCount(Integer productId, String productSize, Integer quantity) {
-    // Retrieve the product from the database
-    ProductResponseDTO productInDB = this.getProductById(productId);
-    Product product = this.modelMapper.map(productInDB, Product.class);
-    // Check if the provided quantity is less than the existing product count
-    if (product.getProductCount() > 0 && product.getProductCount() < quantity) {
-      throw new RuntimeException(
-          "Provided product quantity shouldn't be greater than existing product count");
-    }
-    // Update the product quantity
-    AtomicInteger updatedProductQuantity = new AtomicInteger();
-    product.getProductSizes().stream()
-        .filter(size -> size.getName().equals(productSize))
-        .peek(size -> size.setQuantity(size.getQuantity() - quantity))
-        .forEach(s -> updatedProductQuantity.set(s.getQuantity()));
-    if (updatedProductQuantity.intValue() < 0) {
-      LOGGER.error("Product with id: {} and size: {} is out of stock!", productId, productSize);
-      throw new RuntimeException("Product of size: " + productSize + " is out of stock!");
-    }
-    // Update the total product count
-    Integer totalProducts =
-        Math.toIntExact(
+  public void reduceProductCount(List<OrderProductDTO> products) {
+
+    List<Product> productList =
+        products.stream()
+            .map(p -> this.getProductById(p.getProductId()))
+            .map(productInDB -> this.modelMapper.map(productInDB, Product.class))
+            .toList();
+
+    List<List<Size>> listOfSize = new ArrayList<>();
+
+    products.forEach(
+        actualProduct ->
+            productList.forEach(
+                product -> {
+                  listOfSize.add(
+                      product.getProductSizes().stream()
+                          .filter(
+                              size ->
+                                  product.getProductId().equals(actualProduct.getProductId())
+                                      && size.getName().equals(actualProduct.getProductSize()))
+                          .filter(size -> size.getQuantity() > 0)
+                          .toList());
+                }));
+
+    if (listOfSize.stream().filter(sizes -> sizes.size() >= 1).count() == products.size()) {
+
+      products.forEach(
+          prod -> {
+            // Retrieve the product from the database
+            ProductResponseDTO productInDB = this.getProductById(prod.getProductId());
+            Product product = this.modelMapper.map(productInDB, Product.class);
+            // Check if the provided quantity is less than the existing product count
+            if (product.getProductCount() > 0 && product.getProductCount() < prod.getQuantity()) {
+              throw new RuntimeException(
+                  "Provided product quantity shouldn't be greater than existing product count");
+            }
+            // Update the product quantity
+            AtomicInteger updatedProductQuantity = new AtomicInteger();
             product.getProductSizes().stream()
-                .map(Size::getQuantity)
-                .collect(Collectors.summarizingInt(Integer::intValue))
-                .getSum());
-    product.setProductCount(totalProducts);
-    // Update the product count in the database
-    Query query1 = new Query();
-    query1.addCriteria(where("_id").is(productId));
-    this.mongoTemplate.findAndModify(
-        query1, Update.update("product_count", product.getProductCount()), Product.class);
-    // Update the quantity of the specified productSize in the database
-    Query query2 = new Query();
-    query2.addCriteria(where("_id").is(productId).and("product_sizes.name").is(productSize));
-    Update updateDefinition =
-        new Update().set("product_sizes.$.quantity", updatedProductQuantity.intValue());
-    this.mongoTemplate.findAndModify(query2, updateDefinition, Product.class);
-    // Log a message indicating that the product quantity was updated successfully
-    LOGGER.info(
-        "***** Product with Id: {} and quantity: {} updated successfully *****",
-        productId,
-        quantity);
+                .filter(size -> size.getName().equals(prod.getProductSize()))
+                .peek(size -> size.setQuantity(size.getQuantity() - prod.getQuantity()))
+                .forEach(s -> updatedProductQuantity.set(s.getQuantity()));
+            if (updatedProductQuantity.intValue() < 0) {
+              LOGGER.error(
+                  "Product with id: {} and size: {} is out of stock!",
+                  prod.getProductId(),
+                  prod.getProductSize());
+              throw new RuntimeException(
+                  "Product of size: " + prod.getProductSize() + " is out of stock!");
+            }
+            // Update the total product count
+            Integer totalProducts =
+                Math.toIntExact(
+                    product.getProductSizes().stream()
+                        .map(Size::getQuantity)
+                        .collect(Collectors.summarizingInt(Integer::intValue))
+                        .getSum());
+            product.setProductCount(totalProducts);
+            // Update the product count in the database
+            Query query1 = new Query();
+            query1.addCriteria(where("_id").is(prod.getProductId()));
+            this.mongoTemplate.findAndModify(
+                query1, Update.update("product_count", product.getProductCount()), Product.class);
+            // Update the quantity of the specified productSize in the database
+            Query query2 = new Query();
+            query2.addCriteria(
+                where("_id")
+                    .is(prod.getProductId())
+                    .and("product_sizes.name")
+                    .is(prod.getProductSize()));
+            Update updateDefinition =
+                new Update().set("product_sizes.$.quantity", updatedProductQuantity.intValue());
+            this.mongoTemplate.findAndModify(query2, updateDefinition, Product.class);
+            // Log a message indicating that the product quantity was updated successfully
+            LOGGER.info(
+                "***** Product with Id: {} and quantity: {} updated successfully *****",
+                prod.getProductId(),
+                prod.getQuantity());
+          });
+    } else {
+      throw new RuntimeException("Some products not in stock, unable to place your order!");
+    }
   }
 
   /**

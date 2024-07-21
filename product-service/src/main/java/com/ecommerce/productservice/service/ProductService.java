@@ -1,5 +1,6 @@
 package com.ecommerce.productservice.service;
 
+import com.ecommerce.productservice.payload.request.OrderProductDTO;
 import com.ecommerce.productservice.payload.request.ProductRequestDTO;
 import com.ecommerce.productservice.payload.response.ProductResponseDTO;
 import java.util.List;
@@ -25,7 +26,7 @@ public interface ProductService {
 
   void deleteProductById(Integer productId, String role) throws Exception;
 
-  void reduceProductCount(Integer productId, String productSize, Integer quantity);
+  void reduceProductCount(List<OrderProductDTO> products);
 
   List<ProductResponseDTO> findProductsToExport();
 }
