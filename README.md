@@ -16,6 +16,7 @@
 ### ⚙️ <i> Back-end Technologies </i>
 
 ![](https://img.shields.io/badge/Framework-Spring_Boot-informational?style=flat&logo=SpringBoot&logoColor=white&color=2bbc8a)
+![](https://img.shields.io/badge/Framework-Eclipse_Vert.x-informational?style=flat&logo=eclipsevertdotx&logoColor=white&color=2bbc8a)
 ![](https://img.shields.io/badge/Framework-Spring_Security-informational?style=flat&logo=SpringSecurity&logoColor=white&color=2bbc8a)
 ![](https://img.shields.io/badge/Framework-Spring_Cloud-informational?style=flat&logo=Cloudflare&logoColor=white&color=2bbc8a)
 ![](https://img.shields.io/badge/Database-MySQL-informational?style=flat&logo=mySQL&logoColor=white&color=2bbc8a)
