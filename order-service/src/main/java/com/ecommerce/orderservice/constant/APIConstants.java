@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.constant;
 
 public class APIConstants {
 
-  public static final String PRODUCT_ENDPOINT = "/products/v1/order-product/";
+  public static final String PRODUCT_ENDPOINT = "/products/v1/order";
   public static final String PRODUCT_QUANTITY = "quantity";
   public static final String PRODUCT_HOSTNAME = "localhost";
   public static final Integer PRODUCT_PORT = 8083;

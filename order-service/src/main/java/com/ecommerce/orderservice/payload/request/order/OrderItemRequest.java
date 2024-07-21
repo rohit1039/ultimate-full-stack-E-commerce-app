@@ -15,9 +15,9 @@ import lombok.ToString;
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class OrderItemRequest {
 
-  private Long productId;
+  private Integer productId;
   private String productSize;
-  private Long quantity;
+  private Integer quantity;
 
   public static String toJsonObject(OrderItemRequest orderItemRequest) {
     return JsonObject.mapFrom(orderItemRequest).encodePrettily();
