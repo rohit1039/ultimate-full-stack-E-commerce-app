@@ -28,8 +28,6 @@
 
 This is a full-stack E-commerce application that is implemented with event-driven and independent microservices.
 
-<br />
-
 ## Entity-Relationship Diagram:
 
 <img src="https://github.com/rohit1039/ultimate-full-stack-E-commerce-app/blob/main/ER-diagram.png" alt="" />
