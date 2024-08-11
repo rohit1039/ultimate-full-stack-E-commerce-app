@@ -30,7 +30,11 @@ This is a full-stack E-commerce application that is implemented with event-drive
 
 <br />
 
+## Entity-Relationship Diagram:
+
 <img src="https://github.com/rohit1039/ultimate-full-stack-E-commerce-app/blob/main/ER-diagram.png" alt="" />
 
-<img src="https://github.com/rohit1039/ultimate-full-stack-E-commerce-app/blob/main/full-stack-e-commerce-diagram.png"  alt=""/>
+<br />
 
+## Architectural Diagram:
+<img src="https://github.com/rohit1039/ultimate-full-stack-E-commerce-app/blob/main/full-stack-e-commerce-diagram.png"  alt=""/>
