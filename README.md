@@ -32,8 +32,7 @@ This is a full-stack E-commerce application that is implemented with event-drive
 
 <br />
 <img src="ER.gif" alt="" />
-<br />
 
-# Architectural Diagram:
+## Architectural Diagram:
 
-<img src="full-stack-e-commerce-diagram.png"  alt=""/>
+<img src="full-stack-e-commerce-diagram.gif"  alt=""/>
