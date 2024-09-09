@@ -91,8 +91,8 @@ public class ProductServiceController {
       })
   @PostMapping(value = "/v1/add/{categoryId}")
   public ResponseEntity<EntityModel<ProductResponseDTO>> addProduct(
-      @Schema(hidden = true) @RequestHeader(name = "loggedInUser") String username,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role,
+      @Schema(hidden = true) @RequestHeader(name = "username") String username,
+      @Schema(hidden = true) @RequestHeader(name = "role") String role,
       @Valid @RequestBody ProductRequestDTO productRequestDTO,
       @Parameter(in = ParameterIn.PATH, description = "id of the category to save the products")
           @PathVariable
@@ -178,7 +178,7 @@ public class ProductServiceController {
       @Parameter(in = ParameterIn.QUERY, description = "search keyword to search for products")
           @RequestParam(required = false, defaultValue = "")
           String searchKey,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role)
+      @Schema(hidden = true) @RequestHeader(name = "role") String role)
       throws JsonProcessingException {
 
     Page<ProductResponseDTO> page =
@@ -278,8 +278,8 @@ public class ProductServiceController {
       })
   @PutMapping("/v1/update/{productId}")
   public ResponseEntity<EntityModel<ProductResponseDTO>> updateProduct(
-      @Schema(hidden = true) @RequestHeader(name = "loggedInUser") String username,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role,
+      @Schema(hidden = true) @RequestHeader(name = "username") String username,
+      @Schema(hidden = true) @RequestHeader(name = "role") String role,
       @PathVariable Integer productId,
       @RequestBody ProductRequestDTO productRequestDTO)
       throws Exception {
@@ -293,10 +293,9 @@ public class ProductServiceController {
   }
 
   /**
-   * This endpoint is used to reduce the count of a specific product.
+   * This endpoint is used to reduce the count of multiple products.
    *
-   * @param productId the id of the product to reduce the count
-   * @param quantity the quantity to reduce the count
+   * @param products list of products
    * @return a response indicating whether the count was reduced successfully
    */
   @Operation(

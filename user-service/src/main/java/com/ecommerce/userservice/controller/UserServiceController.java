@@ -47,9 +47,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@Tag(
-    name = "User Service",
-    description = "Admins should use this service to get/read all users")
+@Tag(name = "User Service", description = "Admins should use this service to get/read all users")
 @RequiredArgsConstructor
 @Validated
 public class UserServiceController {
@@ -463,7 +461,7 @@ public class UserServiceController {
   @GetMapping("/v1/export/excel")
   public void exportToExcel(
       HttpServletResponse response,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role)
+      @Schema(hidden = true) @RequestHeader(name = "role") String role)
       throws IOException {
 
     List<UserDTOResponse> listUsers = this.userService.listAll();
@@ -503,7 +501,7 @@ public class UserServiceController {
   @GetMapping("/v1/export/pdf")
   public void exportToPdf(
       HttpServletResponse response,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role)
+      @Schema(hidden = true) @RequestHeader(name = "role") String role)
       throws IOException {
 
     List<UserDTOResponse> listUsers = this.userService.listAll();

@@ -79,8 +79,8 @@ public class CategoryServiceController {
   @PostMapping("/v1/add")
   public ResponseEntity<MappingJacksonValue> createCategory(
       @Valid @RequestBody CategoryRequestDTO categoryDTO,
-      @Schema(hidden = true) @RequestHeader(name = "loggedInUser") String username,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role)
+      @Schema(hidden = true) @RequestHeader(name = "username") String username,
+      @Schema(hidden = true) @RequestHeader(name = "role") String role)
       throws Exception {
 
     CategoryResponseDTO savedCategory =
@@ -107,7 +107,7 @@ public class CategoryServiceController {
       })
   @GetMapping("/v1/all")
   public ResponseEntity<MappingJacksonValue> getAllCategories(
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role,
+      @Schema(hidden = true) @RequestHeader(name = "role") String role,
       @Parameter(in = ParameterIn.QUERY, description = "filter with name of the " + "category")
           @RequestParam(value = "category_name", required = false, defaultValue = "")
           String categoryName,
@@ -195,7 +195,7 @@ public class CategoryServiceController {
   @GetMapping("/v1/export/excel")
   public void exportToExcel(
       HttpServletResponse response,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role)
+      @Schema(hidden = true) @RequestHeader(name = "role") String role)
       throws IOException {
 
     List<CategoryResponseDTO> listCategories =
@@ -229,7 +229,7 @@ public class CategoryServiceController {
   @GetMapping("/v1/export/pdf")
   public void exportToPdf(
       HttpServletResponse response,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role)
+      @Schema(hidden = true) @RequestHeader(name = "role") String role)
       throws IOException {
 
     List<CategoryResponseDTO> listCategories =
@@ -265,8 +265,8 @@ public class CategoryServiceController {
           @PathVariable
           Long categoryId,
       @Valid @RequestBody CategoryRequestDTO categoryRequestDTO,
-      @Schema(hidden = true) @RequestHeader(name = "loggedInUser") String username,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role)
+      @Schema(hidden = true) @RequestHeader(name = "username") String username,
+      @Schema(hidden = true) @RequestHeader(name = "role") String role)
       throws Exception {
 
     CategoryResponseDTO categoryResponseDTO =
@@ -303,8 +303,8 @@ public class CategoryServiceController {
           @PathVariable
           Long categoryId,
       @RequestParam("status") boolean status,
-      @Schema(hidden = true) @RequestHeader(name = "loggedInUser") String username,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role)
+      @Schema(hidden = true) @RequestHeader(name = "username") String username,
+      @Schema(hidden = true) @RequestHeader(name = "role") String role)
       throws Exception {
 
     this.categoryService.updateStatusCategory(categoryId, status, username, role);
