@@ -31,8 +31,8 @@ This is a full-stack E-commerce application that is implemented with event-drive
 ## Entity-Relationship Diagram:
 
 <br />
-<img src="ER.gif" alt="" />
+<img src="images/ER.gif" alt="" />
 
 ## Architectural Diagram:
 
-<img src="full-stack-e-commerce-diagram.gif"  alt=""/>
+<img src="images/full-stack-e-commerce-diagram.gif"  alt=""/>
