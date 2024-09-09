@@ -2,7 +2,7 @@
 
 ## Documentation for API Endpoints
 
-All URIs are relative to *http://172.20.10.2:8083/products*
+All URIs are relative to *http://localhost:8081/products*
 
  Class               | Method                                                                       | HTTP request                          | Description              
 ---------------------|------------------------------------------------------------------------------|---------------------------------------|--------------------------
