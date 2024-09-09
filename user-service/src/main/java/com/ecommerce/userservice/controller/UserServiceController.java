@@ -49,9 +49,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @Tag(
     name = "User Service",
-    description =
-        "Authorized users should use this service to get user's details only, "
-            + "and Admins should use this service to get, update and delete client details")
+    description = "Admins should use this service to get/read all users")
 @RequiredArgsConstructor
 @Validated
 public class UserServiceController {
