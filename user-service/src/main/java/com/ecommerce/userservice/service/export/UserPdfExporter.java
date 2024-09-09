@@ -2,7 +2,7 @@ package com.ecommerce.userservice.service.export;
 
 import static java.util.Objects.isNull;
 
-import com.ecommerce.userservice.exception.UnAuthorizedException;
+import com.ecommerce.userservice.exception.MissingHeaderException;
 import com.ecommerce.userservice.payload.response.UserDTOResponse;
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
@@ -25,7 +25,7 @@ public class UserPdfExporter extends AbstractExporter {
     // Check if the user has the required role
     if (!isNull(role) && role.equals("ROLE_USER")) {
       LOGGER.error("*** {} ***", "Role needs to be ADMIN to export user details in Pdf");
-      throw new UnAuthorizedException("Requires ROLE_ADMIN to download Pdf");
+      throw new MissingHeaderException("Requires ROLE_ADMIN to download Pdf");
     }
     super.setResponseHeader(response, "application/pdf", ".pdf", "users_");
     Document document = new Document(PageSize.A3);
