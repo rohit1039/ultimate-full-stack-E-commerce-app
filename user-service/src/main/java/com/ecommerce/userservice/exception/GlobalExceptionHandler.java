@@ -47,17 +47,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return new ResponseEntity<>(exceptionInResponse, HttpStatus.CONFLICT);
   }
 
-  @ExceptionHandler(UnAuthorizedException.class)
-  public ResponseEntity<ExceptionInResponse> handleUnAuthorizedException(
-      UnAuthorizedException exception) {
-
-    ExceptionInResponse exceptionInResponse =
-        new ExceptionInResponse(
-            "UNAUTHORIZED_ACCESS", exception.getLocalizedMessage(), "Role should be ROLE_ADMIN");
-    LOGGER.error("*** {} ***", exceptionInResponse.getErrorMessage());
-    return new ResponseEntity<>(exceptionInResponse, HttpStatus.UNAUTHORIZED);
-  }
-
   @ExceptionHandler(UserNotFoundException.class)
   public ResponseEntity<ExceptionInResponse> handleUserNotFoundException(
       UserNotFoundException userNotFoundException) {

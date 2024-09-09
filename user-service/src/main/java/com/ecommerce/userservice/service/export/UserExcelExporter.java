@@ -2,7 +2,7 @@ package com.ecommerce.userservice.service.export;
 
 import static java.util.Objects.isNull;
 
-import com.ecommerce.userservice.exception.UnAuthorizedException;
+import com.ecommerce.userservice.exception.MissingHeaderException;
 import com.ecommerce.userservice.payload.response.UserDTOResponse;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
@@ -74,7 +74,7 @@ public class UserExcelExporter extends AbstractExporter {
     // Check if the user has the required role
     if (!isNull(role) && role.equals("ROLE_USER")) {
       LOGGER.error("*** {} ***", "Role needs to be ADMIN to export user details in Excel");
-      throw new UnAuthorizedException("Requires ROLE_ADMIN to download Excel");
+      throw new MissingHeaderException("Requires ROLE_ADMIN to download Excel");
     }
     super.setResponseHeader(response, "application/octet-stream", ".xlsx", "users_");
     writeHeaderLine();
