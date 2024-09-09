@@ -9,7 +9,6 @@ import com.ecommerce.userservice.payload.request.UpdateUserDTO;
 import com.ecommerce.userservice.payload.request.UserDTO;
 import com.ecommerce.userservice.payload.response.ExceptionInResponse;
 import com.ecommerce.userservice.payload.response.UserDTOResponse;
-import com.ecommerce.userservice.security.CustomUserDetails;
 import com.ecommerce.userservice.service.UserService;
 import com.ecommerce.userservice.service.export.UserExcelExporter;
 import com.ecommerce.userservice.service.export.UserPdfExporter;
@@ -23,7 +22,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -42,7 +40,6 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -70,7 +67,7 @@ public class UserServiceController {
   /**
    * This API is used to get the details of the user by username
    *
-   * @param emailId Get the details of the user by emailID
+   * @param emailId Get the details of the user by emailId
    * @return user if exists with status code
    */
   @Operation(
@@ -244,7 +241,7 @@ public class UserServiceController {
       @Valid @RequestBody UpdateUserDTO updateUserDTO) {
 
     UserDTOResponse updatedUser =
-        this.userService.updateUser(updateUserDTO, updateUserDTO.getEmailID());
+        this.userService.updateUser(updateUserDTO, updateUserDTO.getEmailId());
     EntityModel<UserDTOResponse> entityModel = this.userModelAssembler.toModel(updatedUser);
     LOGGER.info("{}", "***** User updated successfully *****");
     return new ResponseEntity<>(entityModel, HttpStatusCode.valueOf(200));
@@ -514,46 +511,6 @@ public class UserServiceController {
     List<UserDTOResponse> listUsers = this.userService.listAll();
     UserPdfExporter exporter = new UserPdfExporter();
     exporter.export(listUsers, response, role);
-  }
-
-  /**
-   * @return ROLE_USER if user's role is ROLE_USER else ROLE_ADMIN
-   */
-  @Operation(
-      security = @SecurityRequirement(name = "JWT_token"),
-      summary = "Get current loggedIn user's role " + "accessible by all users",
-      description = "A GET request to get user's role",
-      tags = {"User Service"})
-  @ApiResponses(
-      value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Successfully found loggedIn user's " + "role'",
-            content =
-                @Content(
-                    mediaType = MediaType.TEXT_PLAIN_VALUE,
-                    schema = @Schema(implementation = String.class))),
-        @ApiResponse(
-            responseCode = "401",
-            description = "Unauthorized Access",
-            content =
-                @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ExceptionInResponse.class))),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Some Exception Occurred",
-            content =
-                @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ExceptionInResponse.class)))
-      })
-  @GetMapping(value = "/v1/current/role")
-  public ResponseEntity<String> getCurrentUserRole(
-      @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-    Role originalRole = userDetails.getUser().getRole();
-    return new ResponseEntity<>(originalRole.name(), HttpStatus.OK);
   }
 
   /**

@@ -20,7 +20,7 @@ public class User {
   @Indexed(unique = true)
   @MongoId
   @Field(name = "username")
-  private String emailID;
+  private String emailId;
 
   @Field(name = "password")
   private String password;
@@ -54,7 +54,7 @@ public class User {
     }
     User user = (User) o;
     return isEnabled == user.isEnabled
-        && Objects.equals(emailID, user.emailID)
+        && Objects.equals(emailId, user.emailId)
         && Objects.equals(password, user.password)
         && Objects.equals(avatarName, user.avatarName)
         && Objects.equals(firstName, user.firstName)
@@ -66,6 +66,6 @@ public class User {
   @Override
   public int hashCode() {
 
-    return Objects.hash(emailID, password, avatarName, firstName, lastName, age, isEnabled, role);
+    return Objects.hash(emailId, password, avatarName, firstName, lastName, age, isEnabled, role);
   }
 }

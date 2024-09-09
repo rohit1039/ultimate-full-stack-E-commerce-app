@@ -15,7 +15,7 @@ import lombok.*;
 @ToString
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonPropertyOrder({"emailID", "firstName", "lastName", "avatarName", "age"})
+@JsonPropertyOrder({"emailId", "firstName", "lastName", "avatarName", "age"})
 public class UpdateUserDTO {
 
   @Email(
@@ -25,7 +25,7 @@ public class UpdateUserDTO {
               + ".[A-Za-z]{2,})$")
   @NotBlank
   @Schema(description = "username of the user", example = "testuser@gmail.com")
-  private String emailID;
+  private String emailId;
 
   @Schema(description = "display picture of the user", example = "default.png")
   private String avatarName;

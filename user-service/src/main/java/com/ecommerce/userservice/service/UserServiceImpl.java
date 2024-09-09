@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
   public UserDTOResponse getUserByUsername(String username) {
 
     Query query = new Query();
-    query.addCriteria(Criteria.where("emailID").is(username));
+    query.addCriteria(Criteria.where("emailId").is(username));
     User user = this.mongoTemplate.findOne(query, User.class);
     if (user != null) {
       if (user.isEnabled()) {
@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
         // Build the updated user object
         User setUpdatedUser =
             userInDB.toBuilder()
-                .emailID(userInDB.getEmailID())
+                .emailId(userInDB.getEmailId())
                 .age(updateUserDTO.getAge())
                 .avatarName(updateUserDTO.getAvatarName())
                 .firstName(updateUserDTO.getFirstName())
@@ -141,7 +141,7 @@ public class UserServiceImpl implements UserService {
   public UserDTOResponse updateRole(String username, Role role) {
 
     Query query = new Query();
-    query.addCriteria(Criteria.where("emailID").is(username));
+    query.addCriteria(Criteria.where("emailId").is(username));
     User userInDB = this.mongoTemplate.findOne(query, User.class);
     if (userInDB != null) {
       // Update the role of the user
@@ -169,7 +169,7 @@ public class UserServiceImpl implements UserService {
   public String deleteUser(String username) {
 
     Query query = new Query();
-    query.addCriteria(Criteria.where("emailID").is(username));
+    query.addCriteria(Criteria.where("emailId").is(username));
     User userInDB = this.mongoTemplate.findOne(query, User.class);
     if (userInDB != null) {
       if (!userInDB.isEnabled()) {
@@ -202,7 +202,7 @@ public class UserServiceImpl implements UserService {
         .addCriteria(
             new Criteria()
                 .orOperator(
-                    Criteria.where("emailID").regex(searchKey, "i"),
+                    Criteria.where("emailId").regex(searchKey, "i"),
                     Criteria.where("firstName").regex(searchKey, "i"),
                     Criteria.where("lastName").regex(searchKey, "i"),
                     Criteria.where("role").regex(searchKey, "i")));

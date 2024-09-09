@@ -42,22 +42,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         new ExceptionInResponse(
             "USER_ALREADY_EXISTS",
             exception.getLocalizedMessage(),
-            "Please try with different emailID");
+            "Please try with different emailId");
     LOGGER.error("*** {} ***", exceptionInResponse.getErrorMessage());
     return new ResponseEntity<>(exceptionInResponse, HttpStatus.CONFLICT);
-  }
-
-  @ExceptionHandler(PasswordCriteriaException.class)
-  public ResponseEntity<ExceptionInResponse> handlePasswordCriteriaException(
-      PasswordCriteriaException exception) {
-
-    ExceptionInResponse exceptionInResponse =
-        new ExceptionInResponse(
-            "PASSWORD_CRITERIA_ERROR",
-            exception.getLocalizedMessage(),
-            "Please fulfill the password criteria");
-    LOGGER.error("*** {} ***", exceptionInResponse.getErrorMessage());
-    return new ResponseEntity<>(exceptionInResponse, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(UnAuthorizedException.class)
@@ -120,6 +107,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
               errors.put(((FieldError) errorGlobal).getField(), errorGlobal.getDefaultMessage());
             });
     LOGGER.error("*** {} ***", errors);
-    return new ResponseEntity<Object>(errors, HttpStatus.BAD_REQUEST);
+    return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
   }
 }
