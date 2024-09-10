@@ -89,7 +89,11 @@ public class AuthenticationFilter implements WebFilter {
         LOGGER.error("TOKEN IS MALFORMED OR EXPIRED");
       }
     } else {
-      LOGGER.warn("TOKEN NOT FOUND");
+      if (!(exchange.getRequest().getURI().getPath().contains("api-docs")
+          || exchange.getRequest().getURI().getPath().contains("swagger-ui"))) {
+
+        LOGGER.warn("TOKEN NOT FOUND");
+      }
     }
 
     return chain.filter(exchange);
