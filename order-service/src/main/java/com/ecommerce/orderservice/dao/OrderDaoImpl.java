@@ -9,6 +9,8 @@ import com.ecommerce.orderservice.payload.request.payment.PaymentRequest;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
 import com.ecommerce.orderservice.payload.response.OrderResponseList;
 import com.ecommerce.orderservice.payload.response.ProductResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -31,6 +33,8 @@ public class OrderDaoImpl implements OrderDao {
   private static final Vertx VERTX = Vertx.currentContext().owner();
 
   private static final WebClient WEB_CLIENT = WebClient.create(VERTX);
+
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Saves an order in the database.
@@ -120,9 +124,10 @@ public class OrderDaoImpl implements OrderDao {
                   orderList.stream()
                       .map(
                           order -> {
-                            if (productResponses instanceof List) {
-                              order.setProducts((List<ProductResponse>) productResponses);
-                            }
+                            order.setProducts(
+                                objectMapper.convertValue(
+                                    productResponses,
+                                    new TypeReference<List<ProductResponse>>() {}));
                             return order;
                           })
                       .collect(Collectors.toList());
