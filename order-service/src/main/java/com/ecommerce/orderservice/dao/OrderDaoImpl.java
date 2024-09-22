@@ -82,7 +82,6 @@ public class OrderDaoImpl implements OrderDao {
     List<Integer> productIds = new CopyOnWriteArrayList<>();
     Promise<List<OrderResponseList>> promise = Promise.promise();
 
-    // Fetch orders from MongoDB
     mongoClient
         .find(COLLECTION, new JsonObject().put(USERNAME, username))
         .flatMap(
