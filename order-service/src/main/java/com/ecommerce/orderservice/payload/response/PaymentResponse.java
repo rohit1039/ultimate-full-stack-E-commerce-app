@@ -1,5 +1,7 @@
-package com.ecommerce.orderservice.payload.request.payment;
+package com.ecommerce.orderservice.payload.response;
 
+import com.ecommerce.orderservice.payload.request.payment.PaymentMethod;
+import com.ecommerce.orderservice.payload.request.payment.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -19,7 +21,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class PaymentRequest {
+public class PaymentResponse {
 
   private String transactionId;
   private PaymentMethod paymentMethod;

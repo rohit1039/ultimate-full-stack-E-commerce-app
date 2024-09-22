@@ -17,9 +17,10 @@ import lombok.*;
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class OrderRequest {
 
-  @NotNull private List<OrderItemRequest> orderItemRequest;
-  @Valid private AddressRequest addressRequest;
-  @Valid private PaymentRequest paymentRequest;
+  @NotNull private List<OrderItemRequest> orderItems;
+  private String username;
+  @Valid private AddressRequest shippingAddress;
+  @Valid private PaymentRequest transactionDetails;
 
   public static JsonObject toJson(OrderRequest orderRequest) {
     return JsonObject.mapFrom(orderRequest);

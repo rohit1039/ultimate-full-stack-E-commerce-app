@@ -23,6 +23,7 @@ import lombok.ToString;
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class AddressRequest {
 
+  private String addressId;
   @NotNull private String firstName;
   @NotNull private String lastName;
   @NotNull private String addressLine1;
@@ -32,6 +33,7 @@ public class AddressRequest {
   @NotNull private String stateName;
   @NotNull private Long postalCode;
   @NotNull private Long phoneNumber;
+  private String username;
 
   @JsonInclude(value = JsonInclude.Include.NON_NULL)
   @JsonFormat(pattern = "dd/MM/yyyy hh:mm:ss a")

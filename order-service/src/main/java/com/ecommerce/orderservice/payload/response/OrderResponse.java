@@ -20,6 +20,8 @@ public class OrderResponse {
   private String orderId;
   private Long totalQuantity;
   private Long totalAmount;
+  private String username;
+  private Integer productId;
   private OrderStatus orderStatus;
   private LocalDateTime orderDate;
   private LocalDateTime cancelDate;

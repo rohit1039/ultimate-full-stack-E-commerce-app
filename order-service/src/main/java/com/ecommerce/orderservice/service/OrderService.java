@@ -6,5 +6,7 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 
 public interface OrderService {
 
+  void retrieveOrders(MongoClient mongoClient, String username, RoutingContext routingContext);
+
   void saveOrder(MongoClient mongoClient, OrderRequest orderRequest, RoutingContext routingContext);
 }
