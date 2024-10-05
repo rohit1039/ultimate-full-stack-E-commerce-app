@@ -1,13 +1,17 @@
 package com.ecommerce.orderservice.payload.response;
 
-import static com.ecommerce.orderservice.constant.APIConstants.ORDER_ID;
-
 import com.ecommerce.orderservice.payload.request.order.OrderStatus;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.vertx.core.json.JsonObject;
 import java.time.LocalDateTime;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import static com.ecommerce.orderservice.constant.APIConstants.ORDER_ID;
 
 @Data
 @NoArgsConstructor
@@ -27,6 +31,7 @@ public class OrderResponse {
   private LocalDateTime cancelDate;
 
   public JsonObject buildOrderResponse(String orderId) {
+
     return new JsonObject().put(ORDER_ID, orderId);
   }
 }

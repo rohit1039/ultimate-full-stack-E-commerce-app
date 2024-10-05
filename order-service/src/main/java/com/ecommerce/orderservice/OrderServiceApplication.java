@@ -11,8 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class OrderServiceApplication {
 
-  private static final Logger LOG =
-      LoggerFactory.getLogger(OrderServiceApplication.class.getName());
+  private static final Logger LOG = LoggerFactory.getLogger(OrderServiceApplication.class.getName());
 
   private final MainVerticle mainVerticle;
 
@@ -32,13 +31,10 @@ public class OrderServiceApplication {
 
     var vertx = Vertx.vertx();
     vertx.exceptionHandler(exception -> LOG.error("Unhandled Exception: ", exception.getCause()));
-    vertx
-        .rxDeployVerticle(mainVerticle)
-        .doOnSuccess(
-            success ->
-                LOG.info("Deployed verticle: {} Successfully!", mainVerticle.getClass().getName()))
-        .doOnError(error -> LOG.error("Failed to deploy: ", error.getCause()))
-        .subscribe();
+    vertx.rxDeployVerticle(mainVerticle)
+         .doOnSuccess(success -> LOG.info("Deployed verticle: {} Successfully!", mainVerticle.getClass().getName()))
+         .doOnError(error -> LOG.error("Failed to deploy: ", error.getCause()))
+         .subscribe();
     LOG.info("Deployed verticle: {} Successfully!", mainVerticle.getClass().getName());
   }
 }

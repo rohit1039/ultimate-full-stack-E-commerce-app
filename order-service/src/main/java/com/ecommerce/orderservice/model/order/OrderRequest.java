@@ -1,7 +1,7 @@
-package com.ecommerce.orderservice.payload.request.order;
+package com.ecommerce.orderservice.model.order;
 
-import com.ecommerce.orderservice.payload.request.address.AddressRequest;
-import com.ecommerce.orderservice.payload.request.payment.PaymentRequest;
+import com.ecommerce.orderservice.model.address.AddressRequest;
+import com.ecommerce.orderservice.model.payment.PaymentRequest;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.vertx.core.json.JsonObject;

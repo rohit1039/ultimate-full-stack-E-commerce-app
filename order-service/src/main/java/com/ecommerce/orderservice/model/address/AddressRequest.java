@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.payload.request.address;
+package com.ecommerce.orderservice.model.address;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;

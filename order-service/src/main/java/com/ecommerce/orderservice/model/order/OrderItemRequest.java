@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.payload.request.order;
+package com.ecommerce.orderservice.model.order;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;

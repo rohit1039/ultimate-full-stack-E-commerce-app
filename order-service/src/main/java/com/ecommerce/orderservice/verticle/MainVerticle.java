@@ -22,16 +22,9 @@ public class MainVerticle extends AbstractVerticle {
     router.route().handler(BodyHandler.create().setHandleFileUploads(true));
     vertx.deployVerticle(new OrderVerticle(router));
     LOG.info("Deployed verticle: {} Successfully!", OrderVerticle.class.getName());
-
-    vertx
-        .createHttpServer()
-        .requestHandler(router)
-        .listen(8084)
-        .doOnError(
-            error -> {
-              LOG.info("Http Server error occurred on port: 8084");
-              startPromise.fail(error.getCause());
-            })
-        .subscribe();
+    vertx.createHttpServer().requestHandler(router).listen(8084).doOnError(error -> {
+      LOG.info("Http Server error occurred on port: 8084");
+      startPromise.fail(error.getCause());
+    }).subscribe();
   }
 }

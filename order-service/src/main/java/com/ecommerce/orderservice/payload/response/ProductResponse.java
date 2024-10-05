@@ -5,7 +5,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -14,28 +18,10 @@ import lombok.*;
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-  "categoryId",
-  "productId",
-  "productName",
-  "productBrand",
-  "username",
-  "productMainImage",
-  "extraProductImages",
-  "shortDescription",
-  "longDescription",
-  "createdAt",
-  "updatedAt",
-  "productPrice",
-  "productSizes",
-  "productCount",
-  "productColor",
-  "discountPercent",
-  "reviewCount",
-  "averageRating",
-  "enabled",
-  "inStock"
-})
+@JsonPropertyOrder({"categoryId", "productId", "productName", "productBrand", "username", "productMainImage",
+  "extraProductImages", "shortDescription", "longDescription", "createdAt", "updatedAt", "productPrice",
+  "productSizes", "productCount", "productColor", "discountPercent", "reviewCount", "averageRating", "enabled",
+  "inStock"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProductResponse {
 
@@ -69,8 +55,6 @@ public class ProductResponse {
 
   public String getShortDescription() {
 
-    return shortDescription.length() > 50
-        ? shortDescription.substring(0, 50).concat("...")
-        : shortDescription;
+    return shortDescription.length() > 50 ? shortDescription.substring(0, 50).concat("...") : shortDescription;
   }
 }

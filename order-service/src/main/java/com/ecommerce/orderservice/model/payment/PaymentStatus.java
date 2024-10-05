@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.payload.request.payment;
+package com.ecommerce.orderservice.model.payment;
 
 public enum PaymentStatus {
   PENDING, PROCESSING, SUCCESS, FAILED
