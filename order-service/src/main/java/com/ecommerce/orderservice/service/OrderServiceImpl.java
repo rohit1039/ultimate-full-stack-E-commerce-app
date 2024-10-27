@@ -15,7 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class implements orderService interface and is used to place an order by calling the product-service by
+ * This class implements orderService interface and is used to place an order by calling the
+ * product-service by
  * specifying the product details.
  */
 public class OrderServiceImpl implements OrderService {
@@ -27,7 +28,8 @@ public class OrderServiceImpl implements OrderService {
   private final OrderResponseBuilder responseBuilder = new OrderResponseBuilder();
 
   @Override
-  public void retrieveOrders(MongoClient mongoClient, String username, RoutingContext routingContext) {
+  public void retrieveOrders(MongoClient mongoClient, String username,
+                             RoutingContext routingContext) {
 
     Future<List<OrderResponseList>> orders = this.orderDao.getOrdersFromDb(mongoClient, username);
     orders.onSuccess(res -> {
@@ -48,7 +50,8 @@ public class OrderServiceImpl implements OrderService {
   public void saveOrder(final MongoClient mongoClient, final OrderRequest orderRequest,
                         final RoutingContext routingContext) {
 
-    Future<OrderResponse> orderInDb = this.orderDao.saveOrderInDb(mongoClient, routingContext, orderRequest);
+    Future<OrderResponse> orderInDb =
+        this.orderDao.saveOrderInDb(mongoClient, routingContext, orderRequest);
     orderInDb.onSuccess(res -> {
       LOG.info("Order placed successfully with Id: {}", res.getOrderId());
       responseBuilder.handleSuccessResponse(routingContext, res);

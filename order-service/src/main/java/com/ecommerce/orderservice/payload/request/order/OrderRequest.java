@@ -5,6 +5,7 @@ import com.ecommerce.orderservice.payload.request.payment.PaymentRequest;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.vertx.core.json.JsonObject;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -22,7 +23,10 @@ public class OrderRequest {
 
   @NotNull
   private List<OrderItemRequest> orderItems;
-  private String username;
+  private LocalDateTime orderPlaceAt;
+  private LocalDateTime orderUpdatedAt;
+  private OrderStatus orderStatus;
+  private String orderPlacedBy;
   @Valid
   private AddressRequest shippingAddress;
   @Valid

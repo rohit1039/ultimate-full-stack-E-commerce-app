@@ -24,6 +24,7 @@ public class PaymentRequest {
   private String transactionId;
   private PaymentMethod paymentMethod;
   private PaymentStatus status;
+  private String username;
 
   @JsonInclude(value = JsonInclude.Include.NON_NULL)
   @JsonFormat(pattern = "dd/MM/yyyy hh:mm:ss a")

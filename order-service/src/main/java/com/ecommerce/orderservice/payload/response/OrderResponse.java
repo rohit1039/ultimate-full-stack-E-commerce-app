@@ -1,5 +1,7 @@
 package com.ecommerce.orderservice.payload.response;
 
+import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ID;
+
 import com.ecommerce.orderservice.payload.request.order.OrderStatus;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -10,8 +12,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import static com.ecommerce.orderservice.constant.APIConstants.ORDER_ID;
 
 @Data
 @NoArgsConstructor

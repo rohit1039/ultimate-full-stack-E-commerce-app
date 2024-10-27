@@ -1,5 +1,8 @@
 package com.ecommerce.orderservice.validator;
 
+import static com.ecommerce.orderservice.constant.ApiConstants.CONTENT_TYPE;
+import static com.ecommerce.orderservice.constant.ApiConstants.JSON_CONTENT_TYPE;
+
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -7,9 +10,6 @@ import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-
-import static com.ecommerce.orderservice.constant.ApiConstants.CONTENT_TYPE;
-import static com.ecommerce.orderservice.constant.ApiConstants.JSON_CONTENT_TYPE;
 
 @NoArgsConstructor
 public class RequestValidator {

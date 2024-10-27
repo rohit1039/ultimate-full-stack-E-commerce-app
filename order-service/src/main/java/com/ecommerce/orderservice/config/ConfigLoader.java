@@ -1,5 +1,8 @@
 package com.ecommerce.orderservice.config;
 
+import static com.ecommerce.orderservice.constant.ApiConstants.COLLECTION;
+import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ID;
+
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.rxjava3.core.Vertx;
@@ -7,9 +10,6 @@ import io.vertx.rxjava3.ext.mongo.MongoClient;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.ecommerce.orderservice.constant.ApiConstants.COLLECTION;
-import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ID;
 
 public class ConfigLoader {
 
@@ -20,7 +20,8 @@ public class ConfigLoader {
 
   public static MongoClient mongoConfig() {
 
-    final JsonObject mongoConfig = new JsonObject().put("connection_string", DB_URI).put("db_name", DB_NAME);
+    final JsonObject mongoConfig =
+        new JsonObject().put("connection_string", DB_URI).put("db_name", DB_NAME);
     LOG.info("MongoClient configured successfully!");
     JsonObject index = new JsonObject().put(ORDER_ID, UUID.randomUUID().toString());
     MongoClient mongoClient = MongoClient.createShared(vertx, mongoConfig);

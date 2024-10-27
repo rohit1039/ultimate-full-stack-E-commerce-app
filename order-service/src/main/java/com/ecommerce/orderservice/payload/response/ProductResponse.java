@@ -18,10 +18,10 @@ import lombok.ToString;
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"categoryId", "productId", "productName", "productBrand", "username", "productMainImage",
-  "extraProductImages", "shortDescription", "longDescription", "createdAt", "updatedAt", "productPrice",
-  "productSizes", "productCount", "productColor", "discountPercent", "reviewCount", "averageRating", "enabled",
-  "inStock"})
+@JsonPropertyOrder({"categoryId", "productId", "productName", "productBrand", "username",
+    "productMainImage", "extraProductImages", "shortDescription", "longDescription", "createdAt",
+    "updatedAt", "productPrice", "productSizes", "productCount", "productColor", "discountPercent",
+    "reviewCount", "averageRating", "enabled", "inStock"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProductResponse {
 
@@ -55,6 +55,7 @@ public class ProductResponse {
 
   public String getShortDescription() {
 
-    return shortDescription.length() > 50 ? shortDescription.substring(0, 50).concat("...") : shortDescription;
+    return shortDescription.length() > 50 ? shortDescription.substring(0, 50).concat("...") :
+        shortDescription;
   }
 }

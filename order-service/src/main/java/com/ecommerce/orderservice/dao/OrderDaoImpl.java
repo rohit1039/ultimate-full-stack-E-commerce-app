@@ -1,5 +1,18 @@
 package com.ecommerce.orderservice.dao;
 
+import static com.ecommerce.orderservice.constant.ApiConstants.ADDRESS;
+import static com.ecommerce.orderservice.constant.ApiConstants.COLLECTION;
+import static com.ecommerce.orderservice.constant.ApiConstants.HOST;
+import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ID;
+import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ITEMS;
+import static com.ecommerce.orderservice.constant.ApiConstants.PAYMENT;
+import static com.ecommerce.orderservice.constant.ApiConstants.PORT;
+import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_BY_ID_ENDPOINT;
+import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_ID;
+import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_ORDER_ENDPOINT;
+import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CODE;
+import static com.ecommerce.orderservice.constant.ApiConstants.USERNAME;
+
 import com.ecommerce.orderservice.payload.request.address.AddressRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
@@ -23,19 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.ecommerce.orderservice.constant.ApiConstants.ADDRESS;
-import static com.ecommerce.orderservice.constant.ApiConstants.COLLECTION;
-import static com.ecommerce.orderservice.constant.ApiConstants.HOST;
-import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ID;
-import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ITEMS;
-import static com.ecommerce.orderservice.constant.ApiConstants.PAYMENT;
-import static com.ecommerce.orderservice.constant.ApiConstants.PORT;
-import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_BY_ID_ENDPOINT;
-import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_ID;
-import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_ORDER_ENDPOINT;
-import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CODE;
-import static com.ecommerce.orderservice.constant.ApiConstants.USERNAME;
 
 public class OrderDaoImpl implements OrderDao {
 
@@ -64,10 +64,13 @@ public class OrderDaoImpl implements OrderDao {
       Promise<OrderResponse> promise = Promise.promise();
       mongoClient.rxSave(COLLECTION, OrderRequest.toJson(orderRequest))
                  .doFinally(mongoClient::close)
-                 .subscribe(orderId -> promise.complete(OrderResponse.builder().orderId(orderId).build()), error -> {
-                   LOG.error("Some error occurred while saving order into database: {}", error.getMessage());
-                   promise.fail("Unable to save order into database");
-                 });
+                 .subscribe(
+                     orderId -> promise.complete(OrderResponse.builder().orderId(orderId).build()),
+                     error -> {
+                       LOG.error("Some error occurred while saving order into database: {}",
+                           error.getMessage());
+                       promise.fail("Unable to save order into database");
+                     });
       return promise.future();
     });
   }
@@ -83,7 +86,8 @@ public class OrderDaoImpl implements OrderDao {
 
     Promise<List<OrderResponseList>> promise = Promise.promise();
     AtomicReference<List<Integer>> productIds = new AtomicReference<>(new CopyOnWriteArrayList<>());
-    AtomicReference<List<OrderResponseList>> orderList = new AtomicReference<>(new CopyOnWriteArrayList<>());
+    AtomicReference<List<OrderResponseList>> orderList =
+        new AtomicReference<>(new CopyOnWriteArrayList<>());
     mongoClient.find(COLLECTION, new JsonObject().put(USERNAME, username)).flatMap(res -> {
       orderList.set(res.stream().map(orderRes -> {
         productIds.set(orderRes.getJsonArray(ORDER_ITEMS)
@@ -94,18 +98,20 @@ public class OrderDaoImpl implements OrderDao {
                                 .orderId(orderRes.getString(ORDER_ID))
                                 .username(orderRes.getString(USERNAME))
                                 .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
-                                .transactionDetails(orderRes.getJsonObject(PAYMENT).mapTo(PaymentRequest.class))
-                                .shippingAddress(orderRes.getJsonObject(ADDRESS).mapTo(AddressRequest.class))
+                                .transactionDetails(
+                                    orderRes.getJsonObject(PAYMENT).mapTo(PaymentRequest.class))
+                                .shippingAddress(
+                                    orderRes.getJsonObject(ADDRESS).mapTo(AddressRequest.class))
                                 .build();
       }).collect(Collectors.toList()));
-      return Single.create(emitter -> findProductById(productIds.get()).onSuccess(emitter::onSuccess)
-                                                                       .onFailure(emitter::onError));
-    }).flatMap(productResponses -> {
-      return Single.just(orderList.get().stream().peek(order -> {
-        order.setProducts(objectMapper.convertValue(productResponses, new TypeReference<List<ProductResponse>>() {
-        }));
-      }).collect(Collectors.toList()));
-    }).subscribe(promise::complete, promise::fail);
+      return Single.create(
+          emitter -> findProductById(productIds.get()).onSuccess(emitter::onSuccess)
+                                                      .onFailure(emitter::onError));
+    }).flatMap(productResponses -> Single.just(orderList.get().stream().peek(order -> {
+      order.setProducts(
+          objectMapper.convertValue(productResponses, new TypeReference<List<ProductResponse>>() {
+          }));
+    }).collect(Collectors.toList()))).subscribe(promise::complete, promise::fail);
     return promise.future();
   }
 
