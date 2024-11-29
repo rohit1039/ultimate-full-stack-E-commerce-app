@@ -36,7 +36,7 @@ spring:
         - id: order-service
           uri: lb://order-service
           predicates:
-            - Path=/orders/**
+            - Path=/v1/**
 
   main:
     web-application-type: reactive
