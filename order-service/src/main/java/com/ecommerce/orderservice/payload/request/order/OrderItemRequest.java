@@ -1,8 +1,9 @@
 package com.ecommerce.orderservice.payload.request.order;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,12 +16,13 @@ import lombok.ToString;
 @ToString
 @Builder
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderItemRequest {
 
-  @NotNull
+  @JsonProperty("product_id")
   private Integer productId;
-  @NotNull
+  @JsonProperty("product_size")
   private String productSize;
-  @NotNull
+  @JsonProperty("quantity")
   private Integer quantity;
 }

@@ -8,5 +8,5 @@ public interface OrderService {
 
   void retrieveOrders(MongoClient mongoClient, String username, RoutingContext routingContext);
 
-  void saveOrder(MongoClient mongoClient, OrderRequest orderRequest, RoutingContext routingContext);
+  void saveOrder(MongoClient mongoClient, String username, OrderRequest orderRequest, RoutingContext routingContext);
 }

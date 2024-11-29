@@ -8,26 +8,19 @@ public class ApiConstants {
   public static final Integer PORT = 8081;
   public static final String CONTENT_TYPE = "Content-Type";
   public static final String JSON_CONTENT_TYPE = "application/json";
-  public static final String ORDER_ID = "order_id";
+  public static final String ORDER_ID = "_id";
+  public static final String ORDER_STATS = "order_status";
   public static final String PRODUCT_ID = "product_id";
   public static final String PLACE_ORDER_ENDPOINT = "/v1/place-order";
   public static final String GET_ALL_ORDERS_ENDPOINT = "v1/orders"; // only by admins
-  public static final String GET_ORDERS_BY_USER_ENDPOINT = "/v1/get-orders/:username";
-  public static final String UPDATE_DELIVERY_ADDRESS_ENDPOINT = "";
-  public static final String ADD_DELIVERY_ADDRESS_ENDPOINT = "";
-  public static final String DELETE_DELIVERY_ADDRESS_ENDPOINT = "";
-  public static final String GET_DELIVERY_ADDRESS_ENDPOINT = "";
-  public static final String UPDATE_ORDER_STATS_ENDPOINT = "";
-  public static final String TRACK_ORDERS_ENDPOINT = "";
-  public static final String ADD_TO_USER_CART_ENDPOINT = "/v1/add-to-cart";
-  public static final String UPDATE_USER_CART_ENDPOINT = "";
-  public static final String REMOVE_FROM_USER_CART_ENDPOINT = "";
-  public static final String ADDRESS = "shipping_address";
-  public static final String PAYMENT = "transaction_details";
+  public static final String GET_ORDERS_BY_USER_ENDPOINT = "/v1/get-orders";
   public static final String ORDER_ITEMS = "order_items";
+
+  public static final String ORDER_PLACED_BY = "order_placed_by";
   public static final String USERNAME = "username";
   public static final String COLLECTION = "orders";
   public static final Integer SUCCESS_STATUS_CODE = 200;
   public static final Integer ERROR_STATUS_CODE = 500;
+  public static final Integer BAD_REQUEST_STATUS_CODE = 400;
   public static final Integer CREATED_STATUS_CODE = 201;
 }

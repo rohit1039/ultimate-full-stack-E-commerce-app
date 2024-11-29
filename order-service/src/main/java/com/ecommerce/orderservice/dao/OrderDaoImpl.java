@@ -1,36 +1,39 @@
 package com.ecommerce.orderservice.dao;
 
-import static com.ecommerce.orderservice.constant.ApiConstants.ADDRESS;
 import static com.ecommerce.orderservice.constant.ApiConstants.COLLECTION;
 import static com.ecommerce.orderservice.constant.ApiConstants.HOST;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ID;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ITEMS;
-import static com.ecommerce.orderservice.constant.ApiConstants.PAYMENT;
+import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_PLACED_BY;
+import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_STATS;
 import static com.ecommerce.orderservice.constant.ApiConstants.PORT;
 import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_BY_ID_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_ID;
 import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_ORDER_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CODE;
-import static com.ecommerce.orderservice.constant.ApiConstants.USERNAME;
 
-import com.ecommerce.orderservice.payload.request.address.AddressRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
-import com.ecommerce.orderservice.payload.request.payment.PaymentRequest;
+import com.ecommerce.orderservice.payload.request.order.OrderStatus;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
 import com.ecommerce.orderservice.payload.response.OrderResponseList;
 import com.ecommerce.orderservice.payload.response.ProductResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Promise;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import io.vertx.rxjava3.ext.web.client.WebClient;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -62,57 +65,82 @@ public class OrderDaoImpl implements OrderDao {
     List<OrderItemRequest> orderItems = orderRequest.getOrderItems();
     return callToProductService(orderItems).flatMap(orders -> {
       Promise<OrderResponse> promise = Promise.promise();
-      mongoClient.rxSave(COLLECTION, OrderRequest.toJson(orderRequest))
-                 .doFinally(mongoClient::close)
-                 .subscribe(
-                     orderId -> promise.complete(OrderResponse.builder().orderId(orderId).build()),
-                     error -> {
-                       LOG.error("Some error occurred while saving order into database: {}",
-                           error.getMessage());
-                       promise.fail("Unable to save order into database");
-                     });
+      try {
+        mongoClient.rxSave(COLLECTION, OrderRequest.toJson(orderRequest))
+                   .doFinally(mongoClient::close)
+                   .subscribe(orderId -> promise.complete(
+                       OrderResponse.builder().orderId(orderId).build()), error -> {
+                     LOG.error("Some error occurred while saving order into database: {}",
+                         error.getMessage());
+                     promise.fail("Unable to save order into database");
+                   });
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
       return promise.future();
     });
   }
 
-  /**
-   * Retrieves orders for a specific username from the database.
-   *
-   * @param mongoClient the MongoDB client
-   * @param username    the username to find orders for
-   * @return a Future that will complete with a list of orders
-   */
   public Future<List<OrderResponseList>> getOrdersFromDb(MongoClient mongoClient, String username) {
 
-    Promise<List<OrderResponseList>> promise = Promise.promise();
-    AtomicReference<List<Integer>> productIds = new AtomicReference<>(new CopyOnWriteArrayList<>());
-    AtomicReference<List<OrderResponseList>> orderList =
-        new AtomicReference<>(new CopyOnWriteArrayList<>());
-    mongoClient.find(COLLECTION, new JsonObject().put(USERNAME, username)).flatMap(res -> {
-      orderList.set(res.stream().map(orderRes -> {
-        productIds.set(orderRes.getJsonArray(ORDER_ITEMS)
-                               .stream()
-                               .map(item -> ((JsonObject) item).getInteger(PRODUCT_ID))
-                               .collect(Collectors.toList()));
+    final Promise<List<OrderResponseList>> promise = Promise.promise();
+
+    AtomicReference<List<OrderResponseList>> orders = new AtomicReference<>(new ArrayList<>());
+
+    mongoClient.find(COLLECTION, new JsonObject().put(ORDER_PLACED_BY, username)).flatMap(res -> {
+
+      List<Integer> allProductIds = res.stream()
+                                       .flatMap(orderRes -> orderRes.getJsonArray(ORDER_ITEMS).stream())
+                                       .map(item -> ((JsonObject) item).getInteger(PRODUCT_ID))
+                                       .collect(Collectors.toList());
+
+      orders.set(res.stream().map(orderRes -> {
         return OrderResponseList.builder()
                                 .orderId(orderRes.getString(ORDER_ID))
-                                .username(orderRes.getString(USERNAME))
+                                .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
+                                .username(orderRes.getString(ORDER_PLACED_BY))
                                 .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
-                                .transactionDetails(
-                                    orderRes.getJsonObject(PAYMENT).mapTo(PaymentRequest.class))
-                                .shippingAddress(
-                                    orderRes.getJsonObject(ADDRESS).mapTo(AddressRequest.class))
                                 .build();
       }).collect(Collectors.toList()));
-      return Single.create(
-          emitter -> findProductById(productIds.get()).onSuccess(emitter::onSuccess)
-                                                      .onFailure(emitter::onError));
-    }).flatMap(productResponses -> Single.just(orderList.get().stream().peek(order -> {
-      order.setProducts(
-          objectMapper.convertValue(productResponses, new TypeReference<List<ProductResponse>>() {
-          }));
-    }).collect(Collectors.toList()))).subscribe(promise::complete, promise::fail);
+
+      return Single.create(emitter -> findProductById(allProductIds).onSuccess(emitter::onSuccess)
+                                                                    .onFailure(emitter::onError));
+
+    }).flatMap(productResponses -> Single.just(orders.get().stream().peek(order -> {
+      List<ProductResponse> productList = objectMapper.convertValue(productResponses,
+          new TypeReference<List<ProductResponse>>() {});
+
+      JsonArray jsonArray = order.getOrderItems();
+      List<OrderItemRequest> orderItems = new ArrayList<>();
+      for (int i = 0; i < jsonArray.size(); i++) {
+        JsonObject jsonObject = jsonArray.getJsonObject(i);
+        try {
+          OrderItemRequest itemRequest =
+              objectMapper.treeToValue(objectMapper.readTree(jsonObject.encode()), OrderItemRequest.class);
+          orderItems.add(itemRequest);
+        } catch (JsonProcessingException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      Map<Integer, ProductResponse> productMap =
+          productList.stream().collect(Collectors.toMap(ProductResponse::getProductId,
+              product -> product, (existing, replacement) -> existing));
+
+      List<ProductResponse> matchingProducts = new ArrayList<>();
+      orderItems.forEach(orderItem -> {
+        ProductResponse product = productMap.get(orderItem.getProductId());
+        matchingProducts.add(product);
+      });
+
+      order.setProducts(matchingProducts);
+
+    }).sorted(Comparator.comparing(OrderResponseList::getOrderId)
+                        .reversed()).collect(Collectors.toList()))).doFinally(mongoClient::close)
+               .subscribe(promise::complete, promise::fail);
+
     return promise.future();
+
   }
 
   /**
@@ -123,17 +151,22 @@ public class OrderDaoImpl implements OrderDao {
    */
   private Future<List<OrderItemRequest>> callToProductService(List<OrderItemRequest> orderItems) {
 
-    Promise<Void> promise = Promise.promise();
+    Promise<List<OrderItemRequest>> promise = Promise.promise();
     LOG.info("*** Calling product-service to validate and place the order ***");
+
     WEB_CLIENT.put(PORT, HOST, PRODUCT_ORDER_ENDPOINT).rxSendJson(orderItems).subscribe(ar -> {
       if (ar.statusCode() == SUCCESS_STATUS_CODE) {
-        promise.complete();
+        promise.complete(orderItems); // Complete with orderItems
       } else {
-        LOG.error("Some error occurred in product-service");
+        LOG.error("Some error occurred in product-service: {}", ar.bodyAsString());
         promise.fail(ar.bodyAsString());
       }
+    }, throwable -> {
+      LOG.error("Request to product-service failed", throwable);
+      promise.fail(throwable); // Handle any exception from the request
     });
-    return promise.future().map(f -> orderItems);
+
+    return promise.future();
   }
 
   private Future<List<ProductResponse>> findProductById(List<Integer> productIds) {

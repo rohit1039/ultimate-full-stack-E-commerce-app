@@ -2,10 +2,10 @@ package com.ecommerce.orderservice.payload.response;
 
 import static com.ecommerce.orderservice.constant.ApiConstants.CONTENT_TYPE;
 import static com.ecommerce.orderservice.constant.ApiConstants.CREATED_STATUS_CODE;
-import static com.ecommerce.orderservice.constant.ApiConstants.ERROR_STATUS_CODE;
 import static com.ecommerce.orderservice.constant.ApiConstants.JSON_CONTENT_TYPE;
 import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CODE;
 
+import com.ecommerce.orderservice.exception.ApiErrorResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.json.Json;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -42,12 +42,13 @@ public class OrderResponseBuilder {
                   .subscribe();
   }
 
-  public void handleFailureResponse(final RoutingContext routingContext, final Throwable error) {
+  public void handleFailureResponse(final RoutingContext routingContext, int statusCode,
+                                    final ApiErrorResponse apiErrorResponse) {
 
     routingContext.response()
                   .putHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
-                  .setStatusCode(ERROR_STATUS_CODE)
-                  .rxEnd(error.getMessage())
+                  .setStatusCode(statusCode)
+                  .rxEnd(Json.encodePrettily(apiErrorResponse))
                   .subscribe();
   }
 }
