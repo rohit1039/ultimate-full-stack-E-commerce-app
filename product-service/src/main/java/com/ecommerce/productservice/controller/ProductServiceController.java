@@ -1,5 +1,6 @@
 package com.ecommerce.productservice.controller;
 
+import static java.util.Objects.isNull;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -46,7 +47,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -144,8 +153,7 @@ public class ProductServiceController {
    */
   @Operation(
       summary = "Get all products",
-      description =
-          "A GET request to get all products, accessible by <b> " + "CLIENTS & ADMINS </b>",
+      description = "A GET request to get all products, accessible by all users",
       tags = {"Product " + "Service"})
   @ApiResponses(
       value = {
@@ -177,19 +185,18 @@ public class ProductServiceController {
           int pageSize,
       @Parameter(in = ParameterIn.QUERY, description = "search keyword to search for products")
           @RequestParam(required = false, defaultValue = "")
-          String searchKey,
-      @Schema(hidden = true) @RequestHeader(name = "role") String role)
+          String searchKey)
       throws JsonProcessingException {
 
     Page<ProductResponseDTO> page =
-        this.productService.getAllProducts(pageNumber, pageSize, searchKey, role);
+        this.productService.getAllProducts(pageNumber, pageSize, searchKey);
     if (page.getTotalElements() != 0 && page.getContent().isEmpty()) {
       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     } else if (page.getTotalElements() == 0) {
       throw new ProductNotFoundException("No products founds");
     }
     CollectionModel<ProductResponseDTO> response =
-        addPageMetadata(page.getContent(), page, 0, searchKey, role);
+        addPageMetadata(page.getContent(), page, 0, searchKey, null);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
@@ -407,8 +414,8 @@ public class ProductServiceController {
       @RequestParam(value = "extraImages") MultipartFile[] extraImages,
       @Parameter(in = ParameterIn.PATH, description = "id of the product") @PathVariable
           Integer productId,
-      @Schema(hidden = true) @RequestHeader(name = "userRole") String role,
-      @Schema(hidden = true) @RequestHeader(name = "loggedInUser") String username)
+      @Schema(hidden = true) @RequestHeader(name = "role") String role,
+      @Schema(hidden = true) @RequestHeader(name = "username") String username)
       throws Exception {
 
     ProductResponseDTO productResponseDTO = this.productService.getProductById(productId);
@@ -531,24 +538,22 @@ public class ProductServiceController {
       EntityModel<ProductResponseDTO> model = this.productAssembler.toModel(productResponseDTO);
       productResponseDTO.add(model.getLinks());
     }
-    if (categoryId == 0) {
+    if (categoryId == 0 && isNull(role)) {
       collectionModel.add(
           linkTo(
                   methodOn(ProductServiceController.class)
-                      .getAllProducts(pageNumber, pageSize, searchKey, role))
+                      .getAllProducts(pageNumber, pageSize, searchKey))
               .withSelfRel());
       if (pageNumber > 1) {
         // add link to first page if the current page is not the first one
         collectionModel.add(
-            linkTo(
-                    methodOn(ProductServiceController.class)
-                        .getAllProducts(1, pageSize, searchKey, role))
+            linkTo(methodOn(ProductServiceController.class).getAllProducts(1, pageSize, searchKey))
                 .withRel(IanaLinkRelations.FIRST));
         // add link to the previous page if the current page is not the first one
         collectionModel.add(
             linkTo(
                     methodOn(ProductServiceController.class)
-                        .getAllProducts(pageNumber - 1, pageSize, searchKey, role))
+                        .getAllProducts(pageNumber - 1, pageSize, searchKey))
                 .withRel(IanaLinkRelations.PREV));
       }
       if (pageNumber < totalPages) {
@@ -556,16 +561,16 @@ public class ProductServiceController {
         collectionModel.add(
             linkTo(
                     methodOn(ProductServiceController.class)
-                        .getAllProducts(pageNumber + 1, pageSize, searchKey, role))
+                        .getAllProducts(pageNumber + 1, pageSize, searchKey))
                 .withRel(IanaLinkRelations.NEXT));
         // add link to last page if the current page is not the last one
         collectionModel.add(
             linkTo(
                     methodOn(ProductServiceController.class)
-                        .getAllProducts((int) totalPages, pageSize, searchKey, role))
+                        .getAllProducts((int) totalPages, pageSize, searchKey))
                 .withRel(IanaLinkRelations.LAST));
       }
-    } else {
+    } else if (categoryId != 0 && !isNull(role)) {
       collectionModel.add(
           linkTo(
                   methodOn(ProductServiceController.class)

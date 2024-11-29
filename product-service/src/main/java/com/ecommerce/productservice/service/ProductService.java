@@ -18,7 +18,7 @@ public interface ProductService {
       Integer categoryId, int pageNumber, int pageSize, String searchKey, String role);
 
   Page<ProductResponseDTO> getAllProducts(
-      int pageNumber, int pageSize, String searchKey, String role);
+      int pageNumber, int pageSize, String searchKey);
 
   ProductResponseDTO updateProductById(
       Integer productId, ProductRequestDTO productRequestDTO, String username, String role)

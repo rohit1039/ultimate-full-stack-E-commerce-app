@@ -16,7 +16,10 @@ import com.ecommerce.productservice.payload.response.ProductResponseDTO;
 import com.ecommerce.productservice.repository.ProductRepository;
 import com.ecommerce.productservice.util.MongoSequenceGenerator;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -89,7 +92,7 @@ public class ProductServiceImpl implements ProductService {
       Product product = modelMapper.map(productRequest, Product.class);
       product.setCreatedAt(LocalDateTime.now());
       product.setShortDescription(product.getShortDescription());
-      product.setProductId(mongoSequenceGenerator.generateSequence("productdb_sequences"));
+      product.setProductId(mongoSequenceGenerator.generateSequence(Product.SEQUENCE_NAME));
       if (categoryResponse.getStatusCode().is2xxSuccessful()) {
         product.setProductCount(product.getProductCount());
         product.setProductColor(product.getProductColor().toLowerCase());
@@ -173,19 +176,18 @@ public class ProductServiceImpl implements ProductService {
    * @param pageNumber The page number.
    * @param pageSize The page size.
    * @param searchKey keyword to search products
-   * @param role role of the user
    * @return The page of products.
    */
   @Override
   @Cacheable(
       value = CACHE_NAME,
-      key = "{#pageNumber, #pageSize, #searchKey, #role}",
+      key = "{#pageNumber, #pageSize, #searchKey}",
       unless = "#result.getContent" + "().size()==0")
   public Page<ProductResponseDTO> getAllProducts(
-      int pageNumber, int pageSize, String searchKey, String role) {
+      int pageNumber, int pageSize, String searchKey) {
     // create a pageable object with the given page number and page size
     Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-    return getPageOfFilteredProducts(0, pageable, searchKey, role);
+    return getPageOfFilteredProducts(0, pageable, searchKey, null);
   }
 
   /**
