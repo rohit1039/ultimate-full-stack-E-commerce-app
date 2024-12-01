@@ -84,8 +84,7 @@ public class OrderServiceImpl implements OrderService {
     Optional<String> header = Optional.ofNullable(username);
     header.ifPresentOrElse(user -> {
       orderRequest.setOrderPlacedBy(user);
-      Future<OrderResponse> orderInDb =
-          this.orderDao.saveOrder(mongoClient, routingContext, orderRequest);
+      Future<OrderResponse> orderInDb = this.orderDao.saveOrder(mongoClient, orderRequest);
       orderInDb.onSuccess(res -> {
         LOG.info("Order placed successfully with Id: {}", res.getOrderId());
         responseBuilder.handleSuccessResponse(routingContext, res);
@@ -99,5 +98,22 @@ public class OrderServiceImpl implements OrderService {
     }, () -> responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE,
         new ApiErrorResponse("No username provided in request header",
             "Please provide @RequestHeader 'username'")));
+  }
+
+  @Override
+  public void updateOrderById(MongoClient mongoClient, String orderId, String orderStatus,
+                              RoutingContext routingContext) {
+
+    Future<OrderResponse> orderInDb = this.orderDao.updateOrder(mongoClient, orderId, orderStatus);
+    orderInDb.onSuccess(res -> {
+      LOG.info("Order updated successfully with Id: {}", res.getOrderId());
+      responseBuilder.handleSuccessResponse(routingContext, res);
+    });
+    orderInDb.onFailure(throwable -> {
+      LOG.error("Some error occurred while updating the order: \n {}", throwable.getMessage());
+      responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE,
+          new ApiErrorResponse("Some error occurred while updating the order",
+              throwable.getMessage()));
+    });
   }
 }

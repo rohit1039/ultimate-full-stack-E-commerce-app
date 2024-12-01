@@ -2,8 +2,11 @@ package com.ecommerce.orderservice.verticle;
 
 import static com.ecommerce.orderservice.constant.ApiConstants.GET_ALL_ORDERS_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.GET_ORDERS_BY_USER_ENDPOINT;
+import static com.ecommerce.orderservice.constant.ApiConstants.ID;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ITEMS;
 import static com.ecommerce.orderservice.constant.ApiConstants.PLACE_ORDER_ENDPOINT;
+import static com.ecommerce.orderservice.constant.ApiConstants.STATUS;
+import static com.ecommerce.orderservice.constant.ApiConstants.UPDATE_ORDER_STATS_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.USERNAME;
 import static com.ecommerce.orderservice.payload.request.order.OrderStatus.PENDING;
 
@@ -15,6 +18,7 @@ import com.ecommerce.orderservice.service.OrderServiceImpl;
 import com.ecommerce.orderservice.validator.RequestValidator;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import java.time.LocalDateTime;
@@ -46,7 +50,7 @@ public class OrderVerticle extends MainVerticle {
     parentRoute.post(PLACE_ORDER_ENDPOINT).handler(this::placeOrder);
     parentRoute.get(GET_ORDERS_BY_USER_ENDPOINT).handler(this::getOrder);
     parentRoute.get(GET_ALL_ORDERS_ENDPOINT).handler(this::getOrders);
-
+    parentRoute.patch(UPDATE_ORDER_STATS_ENDPOINT).handler(this::updateOrder);
   }
 
   public void placeOrder(RoutingContext routingContext) {
@@ -77,6 +81,18 @@ public class OrderVerticle extends MainVerticle {
   /**
    * @param routingContext to handle & customize request and response
    */
+  public void updateOrder(RoutingContext routingContext) {
+
+    LOG.info("Inside updateOrder");
+    MultiMap params = routingContext.queryParams();
+    String orderId = params.get(ID);
+    String orderStatus = params.get(STATUS);
+    this.orderService.updateOrderById(ConfigLoader.mongoConfig(), orderId, orderStatus, routingContext);
+  }
+
+  /**
+   * @param routingContext to handle & customize request and response
+   */
   public void getOrder(RoutingContext routingContext) {
 
     LOG.info("Inside getOrder");
@@ -92,4 +108,5 @@ public class OrderVerticle extends MainVerticle {
     LOG.info("Inside getOrders");
     this.orderService.retrieveAllOrders(ConfigLoader.mongoConfig(), routingContext);
   }
+
 }

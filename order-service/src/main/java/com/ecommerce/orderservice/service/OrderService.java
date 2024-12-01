@@ -6,9 +6,11 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 
 public interface OrderService {
 
+  void saveOrder(MongoClient mongoClient, String username, OrderRequest orderRequest, RoutingContext routingContext);
+
+  void updateOrderById(MongoClient mongoClient, String orderId, String orderStatus, RoutingContext routingContext);
+
   void retrieveOrders(MongoClient mongoClient, String username, RoutingContext routingContext);
 
   void retrieveAllOrders(MongoClient mongoClient, RoutingContext routingContext);
-
-  void saveOrder(MongoClient mongoClient, String username, OrderRequest orderRequest, RoutingContext routingContext);
 }

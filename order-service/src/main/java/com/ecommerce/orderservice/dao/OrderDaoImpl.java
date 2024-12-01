@@ -54,12 +54,11 @@ public class OrderDaoImpl implements OrderDao {
    * Saves an order in the database.
    *
    * @param mongoClient    the MongoDB client
-   * @param routingContext the routing context
    * @param orderRequest   the order request
    * @return a Future that will complete with the order response
    */
   @Override
-  public Future<OrderResponse> saveOrder(MongoClient mongoClient, RoutingContext routingContext,
+  public Future<OrderResponse> saveOrder(MongoClient mongoClient,
                                          OrderRequest orderRequest) {
 
     List<OrderItemRequest> orderItems = orderRequest.getOrderItems();
@@ -205,6 +204,26 @@ public class OrderDaoImpl implements OrderDao {
 
     return promise.future();
 
+  }
+
+  @Override
+  public Future<OrderResponse> updateOrder(MongoClient mongoClient, String orderId,
+                                           String orderStatus) {
+
+    Promise<OrderResponse> promise = Promise.promise();
+    mongoClient.findOneAndUpdate(COLLECTION, new JsonObject().put(ORDER_ID, orderId),
+                   new JsonObject().put("$set",
+                       new JsonObject().put(ORDER_STATS, OrderStatus.valueOf(orderStatus))))
+               .doFinally(mongoClient::close)
+               .subscribe(res -> {
+                 promise.complete(JsonObject.mapFrom(res).mapTo(OrderResponse.class));
+               }, error -> {
+                 LOG.error("Some error occurred while updating order in database: {}",
+                     error.getMessage());
+                 promise.fail("Unable to update order into database");
+               });
+
+    return promise.future();
   }
 
   /**

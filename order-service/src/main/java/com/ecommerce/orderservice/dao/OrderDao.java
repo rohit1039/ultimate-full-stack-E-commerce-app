@@ -5,13 +5,13 @@ import com.ecommerce.orderservice.payload.response.OrderResponse;
 import com.ecommerce.orderservice.payload.response.OrderResponseList;
 import io.vertx.core.Future;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
-import io.vertx.rxjava3.ext.web.RoutingContext;
 import java.util.List;
 
 public interface OrderDao {
 
-  Future<OrderResponse> saveOrder(MongoClient mongoClient, RoutingContext routingContext,
-                                  OrderRequest orderRequest);
+  Future<OrderResponse> saveOrder(MongoClient mongoClient, OrderRequest orderRequest);
+
+  Future<OrderResponse> updateOrder(MongoClient mongoClient, String orderId, String orderStatus);
 
   Future<List<OrderResponseList>> getAllOrders(MongoClient mongoClient);
 

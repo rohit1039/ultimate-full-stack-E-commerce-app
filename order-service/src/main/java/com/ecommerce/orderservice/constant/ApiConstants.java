@@ -14,8 +14,10 @@ public class ApiConstants {
   public static final String PLACE_ORDER_ENDPOINT = "/orders/place-order";
   public static final String GET_ALL_ORDERS_ENDPOINT = "/orders/all"; // only by admins
   public static final String GET_ORDERS_BY_USER_ENDPOINT = "/orders/get-orders";
+  public static final String UPDATE_ORDER_STATS_ENDPOINT = "/orders"; // only by admins
+  public static final String STATUS = "status";
+  public static final String ID = "id";
   public static final String ORDER_ITEMS = "order_items";
-
   public static final String ORDER_PLACED_BY = "order_placed_by";
   public static final String USERNAME = "username";
   public static final String COLLECTION = "orders";
