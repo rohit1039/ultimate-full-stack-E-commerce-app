@@ -6,7 +6,6 @@ import com.ecommerce.apigateway.payload.request.UserDTO;
 import com.ecommerce.apigateway.payload.response.ExceptionInResponse;
 import com.ecommerce.apigateway.payload.response.ForgotPasswordResponse;
 import com.ecommerce.apigateway.payload.response.UserDTOResponse;
-import com.ecommerce.apigateway.security.CustomUserDetailsService;
 import com.ecommerce.apigateway.security.jwt.TokenHelper;
 import com.ecommerce.apigateway.service.AuthenticationService;
 import com.ecommerce.apigateway.service.UserService;
@@ -27,10 +26,16 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/v1/auth")
@@ -45,13 +50,13 @@ public class AuthenticationController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationController.class);
 
-  private final CustomUserDetailsService customUserDetailsService;
-
   private final TokenHelper tokenHelper;
 
   private final AuthenticationService authenticationService;
 
   private final UserService userService;
+
+  private final ReactiveAuthenticationManager authenticationManager;
 
   private final UserModelAssembler userModelAssembler;
 
@@ -164,15 +169,21 @@ public class AuthenticationController {
                     schema = @Schema(implementation = ExceptionInResponse.class)))
       })
   @PostMapping("/login")
-  private ResponseEntity<JSONObject> userLogin(@Valid @RequestBody LoginDTO loginDTO)
-      throws BadCredentialsException {
+  public Mono<ResponseEntity<JSONObject>> userLogin(@Valid @RequestBody LoginDTO loginDTO) {
 
-    UserDetails userDetails =
-        this.customUserDetailsService.loadUserByUsername(loginDTO.getUsername());
-    String token = this.tokenHelper.generateToken(userDetails);
-    JSONObject json = TokenUtil.setToken(token);
-    LOGGER.info("*** {} ***", "Login Success");
-    return new ResponseEntity<>(json, HttpStatus.OK);
+    UsernamePasswordAuthenticationToken authenticationToken =
+        new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword());
+
+    return authenticationManager
+        .authenticate(authenticationToken)
+        .flatMap(
+            auth -> {
+              String token = tokenHelper.generateToken((UserDetails) auth.getPrincipal());
+              JSONObject response = TokenUtil.setToken(token);
+              LOGGER.info("*** {} ***", "Login Success");
+
+              return Mono.just(new ResponseEntity<>(response, HttpStatus.OK));
+            });
   }
 
   /**

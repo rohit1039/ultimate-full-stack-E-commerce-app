@@ -11,7 +11,6 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -24,67 +23,55 @@ public class AuthenticationFilter implements WebFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationFilter.class);
 
   private final TokenHelper jwtTokenHelper;
-
   private final CustomUserDetailsService customUserDetailsService;
 
-  /**
-   * @param jwtTokenHelper to retrieve details related to JWT
-   * @param customUserDetailsService to load the user based on username
-   */
   public AuthenticationFilter(
       TokenHelper jwtTokenHelper, CustomUserDetailsService customUserDetailsService) {
-
     this.jwtTokenHelper = jwtTokenHelper;
     this.customUserDetailsService = customUserDetailsService;
   }
 
   private static final String AUTHORIZATION = "Authorization";
 
-  /**
-   * @param exchange the current server exchange
-   * @param chain provides a way to delegate to the next filter
-   * @return
-   */
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-
     String requestToken = exchange.getRequest().getHeaders().getFirst(AUTHORIZATION);
 
-    String token;
-
     if (requestToken != null && requestToken.startsWith("Bearer")) {
-      token = requestToken.substring(7);
-
-      String username = this.jwtTokenHelper.extractUsername(token);
+      String token = requestToken.substring(7);
+      String username = jwtTokenHelper.extractUsername(token);
 
       if (jwtTokenHelper.validateToken(token, username)
           && SecurityContextHolder.getContext().getAuthentication() == null) {
+        return customUserDetailsService
+            .findByUsername(username)
+            .flatMap(
+                userDetails -> {
+                  UsernamePasswordAuthenticationToken authenticationToken =
+                      new UsernamePasswordAuthenticationToken(
+                          userDetails, null, userDetails.getAuthorities());
 
-        UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(username);
+                  SecurityContext context = new SecurityContextImpl(authenticationToken);
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities());
+                  CustomUserDetails principal =
+                      (CustomUserDetails) context.getAuthentication().getPrincipal();
 
-        SecurityContext context = new SecurityContextImpl(authenticationToken);
+                  ServerHttpRequest modifiedRequest =
+                      exchange
+                          .getRequest()
+                          .mutate()
+                          .header("username", principal.getUsername())
+                          .header("role", principal.getUser().getRole().name())
+                          .build();
 
-        CustomUserDetails principal =
-            (CustomUserDetails) context.getAuthentication().getPrincipal();
+                  ServerWebExchange modifiedExchange =
+                      exchange.mutate().request(modifiedRequest).build();
 
-        ServerHttpRequest modifiedRequest =
-            exchange
-                .getRequest()
-                .mutate()
-                .header("username", principal.getUsername())
-                .header("role", principal.getUser().getRole().name())
-                .build();
-
-        // Create a new ServerWebExchange with the modified request
-        ServerWebExchange modifiedExchange = exchange.mutate().request(modifiedRequest).build();
-
-        return chain
-            .filter(modifiedExchange)
-            .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)));
+                  return chain
+                      .filter(modifiedExchange)
+                      .contextWrite(
+                          ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)));
+                });
       } else {
         LOGGER.error("TOKEN IS MALFORMED OR EXPIRED");
       }

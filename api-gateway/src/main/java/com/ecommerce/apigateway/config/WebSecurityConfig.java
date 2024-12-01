@@ -1,11 +1,14 @@
 package com.ecommerce.apigateway.config;
 
 import com.ecommerce.apigateway.filter.AuthenticationFilter;
+import com.ecommerce.apigateway.security.CustomUserDetailsService;
 import com.ecommerce.apigateway.security.jwt.AuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -25,6 +28,8 @@ public class WebSecurityConfig {
 
   private final AuthenticationFilter authenticationFilter;
 
+  private final CustomUserDetailsService userDetailsService;
+
   /**
    * This SecurityFilterChain is used to allow or restrict users in order to access certain
    * resources
@@ -36,50 +41,52 @@ public class WebSecurityConfig {
   public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
 
     return http.cors()
-               .and()
-               .csrf()
-               .disable()
-               .authorizeExchange()
-               .pathMatchers("/v3/api-docs/**", "/webjars/swagger-ui/**")
-               .permitAll()
-               .pathMatchers(HttpMethod.GET, "/users/v3/api-docs/**")
-               .permitAll()
-               .pathMatchers("/users/**")
-               .hasRole("ADMIN")
-               .pathMatchers(HttpMethod.POST, "/products/**")
-               .hasRole("ADMIN")
-               .pathMatchers(HttpMethod.PUT, "/products/**")
-               .permitAll()
-               .pathMatchers(HttpMethod.PATCH, "/products/**")
-               .hasRole("ADMIN")
-               .pathMatchers(HttpMethod.GET, "/products/**")
-               .permitAll()
-               .pathMatchers(HttpMethod.POST, "/categories/**")
-               .hasRole("ADMIN")
-               .pathMatchers(HttpMethod.PUT, "/categories/**")
-               .hasRole("ADMIN")
-               .pathMatchers(HttpMethod.PATCH, "/categories/**")
-               .hasRole("ADMIN")
-               .pathMatchers(HttpMethod.GET, "/categories/**")
-               .permitAll()
-               .pathMatchers("/v1/auth/**")
-               .permitAll()
-               .pathMatchers("/v1/place-order")
-               .permitAll()
-               .pathMatchers("/v1/get-orders/**")
-               .permitAll()
-               .pathMatchers(HttpMethod.GET, "/v1/all", "/v1/get/**", "/v1/export/**")
-               .hasRole("ADMIN")
-               .pathMatchers(HttpMethod.DELETE)
-               .hasRole("ADMIN")
-               .anyExchange()
-               .authenticated()
-               .and()
-               .addFilterBefore(authenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-               .exceptionHandling()
-               .authenticationEntryPoint(authenticationEntryPoint)
-               .and()
-               .build();
+        .and()
+        .csrf()
+        .disable()
+        .authorizeExchange()
+        .pathMatchers("/v3/api-docs/**", "/webjars/swagger-ui/**")
+        .permitAll()
+        .pathMatchers(HttpMethod.GET, "/users/v3/api-docs/**")
+        .permitAll()
+        .pathMatchers("/users/**")
+        .hasRole("ADMIN")
+        .pathMatchers(HttpMethod.POST, "/products/**")
+        .hasRole("ADMIN")
+        .pathMatchers(HttpMethod.PUT, "/products/**")
+        .permitAll()
+        .pathMatchers(HttpMethod.PATCH, "/products/**")
+        .hasRole("ADMIN")
+        .pathMatchers(HttpMethod.GET, "/products/**")
+        .permitAll()
+        .pathMatchers(HttpMethod.POST, "/categories/**")
+        .hasRole("ADMIN")
+        .pathMatchers(HttpMethod.PUT, "/categories/**")
+        .hasRole("ADMIN")
+        .pathMatchers(HttpMethod.PATCH, "/categories/**")
+        .hasRole("ADMIN")
+        .pathMatchers(HttpMethod.GET, "/categories/**")
+        .permitAll()
+        .pathMatchers("/v1/auth/**")
+        .permitAll()
+        .pathMatchers("/orders/place-order")
+        .permitAll()
+        .pathMatchers("/orders/get-orders")
+        .permitAll()
+        .pathMatchers("/orders/all")
+        .hasRole("ADMIN")
+        .pathMatchers(HttpMethod.GET, "/v1/all", "/v1/get/**", "/v1/export/**")
+        .hasRole("ADMIN")
+        .pathMatchers(HttpMethod.DELETE)
+        .hasRole("ADMIN")
+        .anyExchange()
+        .authenticated()
+        .and()
+        .addFilterBefore(authenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+        .exceptionHandling()
+        .authenticationEntryPoint(authenticationEntryPoint)
+        .and()
+        .build();
   }
 
   /**
@@ -91,6 +98,16 @@ public class WebSecurityConfig {
   public PasswordEncoder passwordEncoder() {
 
     return new BCryptPasswordEncoder();
+  }
+
+  @Bean
+  public ReactiveAuthenticationManager authenticationManager() {
+    UserDetailsRepositoryReactiveAuthenticationManager authenticationManager =
+        new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService);
+
+    authenticationManager.setPasswordEncoder(passwordEncoder());
+
+    return authenticationManager;
   }
 
   /**
