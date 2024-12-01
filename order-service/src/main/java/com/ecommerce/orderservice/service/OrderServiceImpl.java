@@ -21,8 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class implements orderService interface and is used to place an order by calling the
- * product-service by
- * specifying the product details.
+ * product-service by specifying the product details.
  */
 public class OrderServiceImpl implements OrderService {
 

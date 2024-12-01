@@ -4,14 +4,12 @@ import static com.ecommerce.orderservice.constant.ApiConstants.GET_ALL_ORDERS_EN
 import static com.ecommerce.orderservice.constant.ApiConstants.GET_ORDERS_BY_USER_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ITEMS;
 import static com.ecommerce.orderservice.constant.ApiConstants.PLACE_ORDER_ENDPOINT;
-import static com.ecommerce.orderservice.constant.ApiConstants.ROLE;
 import static com.ecommerce.orderservice.constant.ApiConstants.USERNAME;
 import static com.ecommerce.orderservice.payload.request.order.OrderStatus.PENDING;
 
 import com.ecommerce.orderservice.config.ConfigLoader;
 import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
-import com.ecommerce.orderservice.payload.request.order.OrderStatus;
 import com.ecommerce.orderservice.service.OrderService;
 import com.ecommerce.orderservice.service.OrderServiceImpl;
 import com.ecommerce.orderservice.validator.RequestValidator;
