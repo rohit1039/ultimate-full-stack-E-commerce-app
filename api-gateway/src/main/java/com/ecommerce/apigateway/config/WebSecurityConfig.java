@@ -75,6 +75,8 @@ public class WebSecurityConfig {
         .permitAll()
         .pathMatchers("/orders/all")
         .hasRole("ADMIN")
+        .pathMatchers(HttpMethod.PATCH, "/orders/**")
+        .hasRole("ADMIN")
         .pathMatchers(HttpMethod.GET, "/v1/all", "/v1/get/**", "/v1/export/**")
         .hasRole("ADMIN")
         .pathMatchers(HttpMethod.DELETE)
