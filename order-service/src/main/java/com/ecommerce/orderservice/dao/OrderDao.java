@@ -10,8 +10,10 @@ import java.util.List;
 
 public interface OrderDao {
 
-  Future<OrderResponse> saveOrderInDb(MongoClient mongoClient, RoutingContext routingContext,
-                                      OrderRequest orderRequest);
+  Future<OrderResponse> saveOrder(MongoClient mongoClient, RoutingContext routingContext,
+                                  OrderRequest orderRequest);
 
-  Future<List<OrderResponseList>> getOrdersFromDb(MongoClient mongoClient, String username);
+  Future<List<OrderResponseList>> getAllOrders(MongoClient mongoClient);
+
+  Future<List<OrderResponseList>> getOrdersByUsername(MongoClient mongoClient, String username);
 }

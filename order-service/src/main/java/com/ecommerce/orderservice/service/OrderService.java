@@ -8,5 +8,7 @@ public interface OrderService {
 
   void retrieveOrders(MongoClient mongoClient, String username, RoutingContext routingContext);
 
+  void retrieveAllOrders(MongoClient mongoClient, RoutingContext routingContext);
+
   void saveOrder(MongoClient mongoClient, String username, OrderRequest orderRequest, RoutingContext routingContext);
 }

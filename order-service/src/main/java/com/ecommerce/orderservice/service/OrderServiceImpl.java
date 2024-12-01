@@ -38,7 +38,7 @@ public class OrderServiceImpl implements OrderService {
 
     Optional<String> header = Optional.ofNullable(username);
     header.ifPresentOrElse(user -> {
-      Future<List<OrderResponseList>> orders = this.orderDao.getOrdersFromDb(mongoClient, user);
+      Future<List<OrderResponseList>> orders = this.orderDao.getOrdersByUsername(mongoClient, user);
       orders.onSuccess(res -> {
         LOG.info("Orders found successfully for user: {}", user);
         try {
@@ -59,6 +59,26 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
+  public void retrieveAllOrders(MongoClient mongoClient, RoutingContext routingContext) {
+
+    Future<List<OrderResponseList>> orders = this.orderDao.getAllOrders(mongoClient);
+    orders.onSuccess(res -> {
+      LOG.info("Orders found successfully");
+      try {
+        responseBuilder.handleSuccessListResponse(routingContext, res);
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
+    });
+    orders.onFailure(throwable -> {
+      LOG.error("Some error occurred while finding orders: \n {}", throwable.getMessage());
+      responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE,
+          new ApiErrorResponse("Some error occurred while finding orders",
+              throwable.getLocalizedMessage()));
+    });
+  }
+
+  @Override
   public void saveOrder(final MongoClient mongoClient, final String username,
                         final OrderRequest orderRequest, final RoutingContext routingContext) {
 
@@ -66,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
     header.ifPresentOrElse(user -> {
       orderRequest.setOrderPlacedBy(user);
       Future<OrderResponse> orderInDb =
-          this.orderDao.saveOrderInDb(mongoClient, routingContext, orderRequest);
+          this.orderDao.saveOrder(mongoClient, routingContext, orderRequest);
       orderInDb.onSuccess(res -> {
         LOG.info("Order placed successfully with Id: {}", res.getOrderId());
         responseBuilder.handleSuccessResponse(routingContext, res);

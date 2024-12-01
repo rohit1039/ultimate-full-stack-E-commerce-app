@@ -59,8 +59,8 @@ public class OrderDaoImpl implements OrderDao {
    * @return a Future that will complete with the order response
    */
   @Override
-  public Future<OrderResponse> saveOrderInDb(MongoClient mongoClient, RoutingContext routingContext,
-                                             OrderRequest orderRequest) {
+  public Future<OrderResponse> saveOrder(MongoClient mongoClient, RoutingContext routingContext,
+                                         OrderRequest orderRequest) {
 
     List<OrderItemRequest> orderItems = orderRequest.getOrderItems();
     return callToProductService(orderItems).flatMap(orders -> {
@@ -81,7 +81,71 @@ public class OrderDaoImpl implements OrderDao {
     });
   }
 
-  public Future<List<OrderResponseList>> getOrdersFromDb(MongoClient mongoClient, String username) {
+  @Override
+  public Future<List<OrderResponseList>> getAllOrders(MongoClient mongoClient) {
+
+    final Promise<List<OrderResponseList>> promise = Promise.promise();
+
+    AtomicReference<List<OrderResponseList>> orders = new AtomicReference<>(new ArrayList<>());
+
+    mongoClient.find(COLLECTION, new JsonObject()).flatMap(res -> {
+
+      List<Integer> allProductIds = res.stream()
+                                       .flatMap(orderRes -> orderRes.getJsonArray(ORDER_ITEMS).stream())
+                                       .map(item -> ((JsonObject) item).getInteger(PRODUCT_ID))
+                                       .collect(Collectors.toList());
+
+      orders.set(res.stream().map(orderRes -> {
+        return OrderResponseList.builder()
+                                .orderId(orderRes.getString(ORDER_ID))
+                                .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
+                                .username(orderRes.getString(ORDER_PLACED_BY))
+                                .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
+                                .build();
+      }).collect(Collectors.toList()));
+
+      return Single.create(emitter -> findProductById(allProductIds).onSuccess(emitter::onSuccess)
+                                                                    .onFailure(emitter::onError));
+
+    }).flatMap(productResponses -> Single.just(orders.get().stream().peek(order -> {
+      List<ProductResponse> productList = objectMapper.convertValue(productResponses,
+          new TypeReference<List<ProductResponse>>() {});
+      JsonArray jsonArray = order.getOrderItems();
+      List<OrderItemRequest> orderItems = new ArrayList<>();
+      for (int i = 0; i < jsonArray.size(); i++) {
+        JsonObject jsonObject = jsonArray.getJsonObject(i);
+        try {
+          OrderItemRequest itemRequest =
+              objectMapper.treeToValue(objectMapper.readTree(jsonObject.encode()), OrderItemRequest.class);
+          orderItems.add(itemRequest);
+        } catch (JsonProcessingException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      Map<Integer, ProductResponse> productMap =
+          productList.stream().collect(Collectors.toMap(ProductResponse::getProductId,
+              product -> product, (existing, replacement) -> existing));
+
+      List<ProductResponse> matchingProducts = new ArrayList<>();
+
+      orderItems.forEach(orderItem -> {
+        ProductResponse product = productMap.get(orderItem.getProductId());
+        matchingProducts.add(product);
+      });
+
+      order.setProducts(matchingProducts);
+
+    }).sorted(Comparator.comparing(OrderResponseList::getOrderId)
+                        .reversed()).collect(Collectors.toList())))
+               .doFinally(mongoClient::close)
+               .subscribe(promise::complete, promise::fail);
+
+    return promise.future();
+  }
+
+  @Override
+  public Future<List<OrderResponseList>> getOrdersByUsername(MongoClient mongoClient,
+                                                             String username) {
 
     final Promise<List<OrderResponseList>> promise = Promise.promise();
 
@@ -122,7 +186,6 @@ public class OrderDaoImpl implements OrderDao {
           throw new RuntimeException(e);
         }
       }
-
       Map<Integer, ProductResponse> productMap =
           productList.stream().collect(Collectors.toMap(ProductResponse::getProductId,
               product -> product, (existing, replacement) -> existing));
@@ -136,7 +199,8 @@ public class OrderDaoImpl implements OrderDao {
       order.setProducts(matchingProducts);
 
     }).sorted(Comparator.comparing(OrderResponseList::getOrderId)
-                        .reversed()).collect(Collectors.toList()))).doFinally(mongoClient::close)
+                        .reversed()).collect(Collectors.toList())))
+               .doFinally(mongoClient::close)
                .subscribe(promise::complete, promise::fail);
 
     return promise.future();

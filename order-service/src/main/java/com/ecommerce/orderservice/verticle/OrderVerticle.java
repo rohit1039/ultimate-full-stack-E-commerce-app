@@ -1,9 +1,12 @@
 package com.ecommerce.orderservice.verticle;
 
+import static com.ecommerce.orderservice.constant.ApiConstants.GET_ALL_ORDERS_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.GET_ORDERS_BY_USER_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ITEMS;
 import static com.ecommerce.orderservice.constant.ApiConstants.PLACE_ORDER_ENDPOINT;
+import static com.ecommerce.orderservice.constant.ApiConstants.ROLE;
 import static com.ecommerce.orderservice.constant.ApiConstants.USERNAME;
+import static com.ecommerce.orderservice.payload.request.order.OrderStatus.PENDING;
 
 import com.ecommerce.orderservice.config.ConfigLoader;
 import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
@@ -44,6 +47,8 @@ public class OrderVerticle extends MainVerticle {
 
     parentRoute.post(PLACE_ORDER_ENDPOINT).handler(this::placeOrder);
     parentRoute.get(GET_ORDERS_BY_USER_ENDPOINT).handler(this::getOrder);
+    parentRoute.get(GET_ALL_ORDERS_ENDPOINT).handler(this::getOrders);
+
   }
 
   public void placeOrder(RoutingContext routingContext) {
@@ -51,14 +56,16 @@ public class OrderVerticle extends MainVerticle {
     LOG.info("Inside placeOrder");
     JsonObject requestBody = routingContext.body().asJsonObject();
     OrderRequest orderRequest = new OrderRequest();
-    List<OrderItemRequest> orderItemRequest = requestBody.getJsonArray(ORDER_ITEMS)
-                                                         .stream()
-                                                         .map(order -> new JsonObject(
-                                                             order.toString()).mapTo(
-                                                             OrderItemRequest.class))
-                                                         .collect(Collectors.toList());
+
+    List<OrderItemRequest> orderItemRequest =
+        requestBody.getJsonArray(ORDER_ITEMS)
+                   .stream()
+                   .map(order ->
+                       new JsonObject(order.toString()).mapTo(OrderItemRequest.class))
+                   .collect(Collectors.toList());
+
     orderRequest.setOrderItems(orderItemRequest);
-    orderRequest.setOrderStatus(OrderStatus.PENDING);
+    orderRequest.setOrderStatus(PENDING);
     orderRequest.setOrderPlacedAt(LocalDateTime.now());
     orderRequest.setOrderUpdatedAt(LocalDateTime.now());
     String username = routingContext.request().getHeader(USERNAME);
@@ -77,5 +84,14 @@ public class OrderVerticle extends MainVerticle {
     LOG.info("Inside getOrder");
     String username = routingContext.request().getHeader(USERNAME);
     this.orderService.retrieveOrders(ConfigLoader.mongoConfig(), username, routingContext);
+  }
+
+  /**
+   * @param routingContext to handle & customize request and response
+   */
+  public void getOrders(RoutingContext routingContext) {
+
+    LOG.info("Inside getOrders");
+    this.orderService.retrieveAllOrders(ConfigLoader.mongoConfig(), routingContext);
   }
 }
