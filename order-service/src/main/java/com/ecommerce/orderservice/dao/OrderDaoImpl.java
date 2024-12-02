@@ -17,13 +17,11 @@ import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderStatus;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
-import com.ecommerce.orderservice.payload.response.OrderResponseBuilder;
 import com.ecommerce.orderservice.payload.response.OrderResponseList;
 import com.ecommerce.orderservice.payload.response.ProductResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -36,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -244,7 +243,7 @@ public class OrderDaoImpl implements OrderDao {
                .flatMap(updatedRecord -> mongoClient.findOne(COLLECTION,
                    new JsonObject().put(ORDER_ID, orderId), null))
                .subscribe(updatedData -> {
-                 if (updatedData != null) {
+                 if (!Objects.isNull(updatedData)) {
                    OrderResponse orderResponse = new OrderResponse();
                    orderResponse.setOrderStatus(
                        OrderStatus.valueOf(updatedData.getString(ORDER_STATS)));
