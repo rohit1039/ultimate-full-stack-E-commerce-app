@@ -20,9 +20,9 @@ import lombok.ToString;
 public class OrderItemRequest {
 
   @JsonProperty("product_id")
-  private Integer productId;
+  private int productId;
   @JsonProperty("product_size")
   private String productSize;
   @JsonProperty("quantity")
-  private Integer quantity;
+  private int quantity;
 }

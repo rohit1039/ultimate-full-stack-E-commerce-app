@@ -1,14 +1,18 @@
 package com.ecommerce.orderservice.service;
 
-import com.ecommerce.orderservice.payload.request.order.OrderRequest;
+import com.ecommerce.orderservice.exception.ApiErrorResponse;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+import java.util.List;
 
 public interface OrderService {
 
-  void saveOrder(MongoClient mongoClient, String username, OrderRequest orderRequest, RoutingContext routingContext);
+  void saveOrder(MongoClient mongoClient, JsonObject requestBody, String username, List<ApiErrorResponse> errorResponses,
+                 RoutingContext routingContext);
 
-  void updateOrderById(MongoClient mongoClient, String orderId, String orderStatus, RoutingContext routingContext);
+  void updateOrderById(MongoClient mongoClient, String orderId, String orderStatus,
+                       RoutingContext routingContext);
 
   void retrieveOrders(MongoClient mongoClient, String username, RoutingContext routingContext);
 
