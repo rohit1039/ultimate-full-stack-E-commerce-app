@@ -241,7 +241,10 @@ public class OrderDaoImpl implements OrderDao {
                        new JsonObject().put(ORDER_STATS, OrderStatus.valueOf(orderStatus))))
                .doFinally(mongoClient::close)
                .subscribe(res -> {
-                 promise.complete(JsonObject.mapFrom(res).mapTo(OrderResponse.class));
+                 OrderResponse orderResponse = new OrderResponse();
+                 orderResponse.setOrderStatus(OrderStatus.valueOf(res.getString(ORDER_STATS)));
+                 orderResponse.setOrderId(res.getString(ORDER_ID));
+                 promise.complete(orderResponse);
                }, error -> {
                  LOG.error("Some error occurred while updating order in database: {}",
                      error.getMessage());

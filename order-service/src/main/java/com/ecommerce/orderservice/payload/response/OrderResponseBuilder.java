@@ -8,6 +8,7 @@ import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CO
 import com.ecommerce.orderservice.exception.ApiErrorResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import java.util.List;
 import lombok.Builder;
@@ -26,8 +27,7 @@ public class OrderResponseBuilder {
     routingContext.response()
                   .putHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
                   .setStatusCode(CREATED_STATUS_CODE)
-                  .rxEnd(new OrderResponse().buildOrderResponse(response.getOrderId())
-                                            .encodePrettily())
+                  .rxEnd(JsonObject.mapFrom(response).encodePrettily())
                   .subscribe();
   }
 
