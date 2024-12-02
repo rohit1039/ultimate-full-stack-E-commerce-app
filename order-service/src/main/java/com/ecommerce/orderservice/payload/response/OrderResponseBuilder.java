@@ -1,7 +1,6 @@
 package com.ecommerce.orderservice.payload.response;
 
 import static com.ecommerce.orderservice.constant.ApiConstants.CONTENT_TYPE;
-import static com.ecommerce.orderservice.constant.ApiConstants.CREATED_STATUS_CODE;
 import static com.ecommerce.orderservice.constant.ApiConstants.JSON_CONTENT_TYPE;
 import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CODE;
 
@@ -43,7 +42,7 @@ public class OrderResponseBuilder {
   }
 
   public void handleFailureResponse(final RoutingContext routingContext, int statusCode,
-                                    final ApiErrorResponse apiErrorResponse) {
+                                    final List<ApiErrorResponse> apiErrorResponse) {
 
     routingContext.response()
                   .putHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)

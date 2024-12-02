@@ -87,7 +87,8 @@ public class OrderVerticle extends MainVerticle {
     MultiMap params = routingContext.queryParams();
     String orderId = params.get(ID);
     String orderStatus = params.get(STATUS);
-    this.orderService.updateOrderById(ConfigLoader.mongoConfig(), orderId, orderStatus, routingContext);
+    this.orderService.updateOrderById(ConfigLoader.mongoConfig(), orderId, orderStatus,
+        routingContext);
   }
 
   /**

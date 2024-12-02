@@ -17,7 +17,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.core.Future;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +53,13 @@ public class OrderServiceImpl implements OrderService {
       });
       orders.onFailure(throwable -> {
         LOG.error("Some error occurred while finding orders: \n {}", throwable.getMessage());
-        responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE,
+        responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE, List.of(
             new ApiErrorResponse("Some error occurred while finding orders",
-                throwable.getLocalizedMessage()));
+                throwable.getLocalizedMessage())));
       });
-    }, () -> responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE,
+    }, () -> responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE, List.of(
         new ApiErrorResponse("No username provided in request header",
-            "Please provide @RequestHeader 'username'")));
+            "Please provide @RequestHeader 'username'"))));
   }
 
   @Override
@@ -74,9 +76,9 @@ public class OrderServiceImpl implements OrderService {
     });
     orders.onFailure(throwable -> {
       LOG.error("Some error occurred while finding orders: \n {}", throwable.getMessage());
-      responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE,
+      responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE, List.of(
           new ApiErrorResponse("Some error occurred while finding orders",
-              throwable.getLocalizedMessage()));
+              throwable.getLocalizedMessage())));
     });
   }
 
@@ -94,36 +96,51 @@ public class OrderServiceImpl implements OrderService {
       });
       orderInDb.onFailure(throwable -> {
         LOG.error("Some error occurred while placing the order: \n {}", throwable.getMessage());
-        responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE,
+        responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE, List.of(
             new ApiErrorResponse("Some error occurred while placing the order",
-                throwable.getMessage()));
+                throwable.getMessage())));
       });
-    }, () -> responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE,
+    }, () -> responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE, List.of(
         new ApiErrorResponse("No username provided in request header",
-            "Please provide @RequestHeader 'username'")));
+            "Please provide @RequestHeader 'username'"))));
   }
 
   @Override
   public void updateOrderById(MongoClient mongoClient, String orderId, String orderStatus,
                               RoutingContext routingContext) {
 
-    if (OrderStatus.isValid(orderStatus)) {
-      Future<OrderResponse> orderInDb =
-          this.orderDao.updateOrder(mongoClient, orderId, orderStatus);
-      orderInDb.onSuccess(res -> {
-        LOG.info("Order updated successfully with Id: {}", res.getOrderId());
-        responseBuilder.handleSuccessResponse(routingContext, SUCCESS_STATUS_CODE, res);
-      });
-      orderInDb.onFailure(throwable -> {
-        LOG.error("Some error occurred while updating the order: \n {}", throwable.getMessage());
-        responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE,
-            new ApiErrorResponse("Some error occurred while updating the order",
-                throwable.getMessage()));
-      });
-    } else {
-      responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE,
-          new ApiErrorResponse("Some error occurred while updating the order",
-              "Please provide a valid order status value"));
+    List<ApiErrorResponse> errorResponses = new ArrayList<>();
+
+    if (Objects.isNull(orderId) || Objects.isNull(orderStatus)) {
+      LOG.error("Please provide request params i.e. (id and status) to update the order status");
+      errorResponses.add(new ApiErrorResponse("Some error occurred while updating the order",
+          "Please provide request params i.e. (id and status) to update the order status"));
     }
+    if (!OrderStatus.isValid(orderStatus)) {
+      LOG.error("Please provide a valid order status value");
+      errorResponses.add(new ApiErrorResponse("Some error occurred while updating the order",
+          "Please provide a valid order status value"));
+    }
+
+    // Handle validation errors
+    if (!errorResponses.isEmpty()) {
+      responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE,
+          errorResponses);
+      return;
+    }
+    Future<OrderResponse> orderInDb = this.orderDao.updateOrder(mongoClient, orderId, orderStatus);
+
+    orderInDb.onSuccess(res -> {
+      LOG.info("Order updated successfully with Id: {}", res.getOrderId());
+      responseBuilder.handleSuccessResponse(routingContext, SUCCESS_STATUS_CODE, res);
+    });
+
+    orderInDb.onFailure(throwable -> {
+      LOG.error("Some error occurred while updating the order: \n {}", throwable.getMessage());
+      responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE, List.of(
+          new ApiErrorResponse("Some error occurred while updating the order",
+              throwable.getMessage())));
+    });
   }
+
 }
