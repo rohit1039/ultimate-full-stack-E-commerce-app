@@ -17,11 +17,13 @@ import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderStatus;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
+import com.ecommerce.orderservice.payload.response.OrderResponseBuilder;
 import com.ecommerce.orderservice.payload.response.OrderResponseList;
 import com.ecommerce.orderservice.payload.response.ProductResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -239,20 +241,26 @@ public class OrderDaoImpl implements OrderDao {
     mongoClient.findOneAndUpdate(COLLECTION, new JsonObject().put(ORDER_ID, orderId),
                    new JsonObject().put(SET,
                        new JsonObject().put(ORDER_STATS, OrderStatus.valueOf(orderStatus))))
-               .doFinally(mongoClient::close)
-               .subscribe(res -> {
-                 OrderResponse orderResponse = new OrderResponse();
-                 orderResponse.setOrderStatus(OrderStatus.valueOf(res.getString(ORDER_STATS)));
-                 orderResponse.setOrderId(res.getString(ORDER_ID));
-                 promise.complete(orderResponse);
+               .flatMap(updatedRecord -> mongoClient.findOne(COLLECTION,
+                   new JsonObject().put(ORDER_ID, orderId), null))
+               .subscribe(updatedData -> {
+                 if (updatedData != null) {
+                   OrderResponse orderResponse = new OrderResponse();
+                   orderResponse.setOrderStatus(
+                       OrderStatus.valueOf(updatedData.getString(ORDER_STATS)));
+                   orderResponse.setOrderId(updatedData.getString(ORDER_ID));
+                   promise.complete(orderResponse);
+                 } else {
+                   promise.fail("Unable to fetch updated order details.");
+                 }
                }, error -> {
-                 LOG.error("Some error occurred while updating order in database: {}",
+                 LOG.error("Error occurred while updating order in database: {}",
                      error.getMessage());
-                 promise.fail("Unable to update order into database");
+                 promise.fail("Database update failed.");
                });
-
     return promise.future();
   }
+
 
   /**
    * Calls the product service to validate the order items.
