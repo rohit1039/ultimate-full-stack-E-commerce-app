@@ -3,6 +3,7 @@ package com.ecommerce.orderservice.payload.response;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ID;
 
 import com.ecommerce.orderservice.payload.request.order.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -20,6 +21,7 @@ import lombok.ToString;
 @ToString
 @Builder
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderResponse {
 
   @JsonProperty("_id")
