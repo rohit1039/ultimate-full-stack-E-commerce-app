@@ -21,12 +21,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderResponseBuilder {
 
-  public void handleSuccessResponse(final RoutingContext routingContext,
+  public void handleSuccessResponse(final RoutingContext routingContext, Integer statusCode,
                                     final OrderResponse response) {
 
     routingContext.response()
                   .putHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
-                  .setStatusCode(CREATED_STATUS_CODE)
+                  .setStatusCode(statusCode)
                   .rxEnd(JsonObject.mapFrom(response).encodePrettily())
                   .subscribe();
   }

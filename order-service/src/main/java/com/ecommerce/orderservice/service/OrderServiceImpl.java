@@ -1,12 +1,15 @@
 package com.ecommerce.orderservice.service;
 
 import static com.ecommerce.orderservice.constant.ApiConstants.BAD_REQUEST_STATUS_CODE;
+import static com.ecommerce.orderservice.constant.ApiConstants.CREATED_STATUS_CODE;
 import static com.ecommerce.orderservice.constant.ApiConstants.ERROR_STATUS_CODE;
+import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CODE;
 
 import com.ecommerce.orderservice.dao.OrderDao;
 import com.ecommerce.orderservice.dao.OrderDaoImpl;
 import com.ecommerce.orderservice.exception.ApiErrorResponse;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
+import com.ecommerce.orderservice.payload.request.order.OrderStatus;
 import com.ecommerce.orderservice.payload.response.OrderResponse;
 import com.ecommerce.orderservice.payload.response.OrderResponseBuilder;
 import com.ecommerce.orderservice.payload.response.OrderResponseList;
@@ -87,7 +90,7 @@ public class OrderServiceImpl implements OrderService {
       Future<OrderResponse> orderInDb = this.orderDao.saveOrder(mongoClient, orderRequest);
       orderInDb.onSuccess(res -> {
         LOG.info("Order placed successfully with Id: {}", res.getOrderId());
-        responseBuilder.handleSuccessResponse(routingContext, res);
+        responseBuilder.handleSuccessResponse(routingContext, CREATED_STATUS_CODE, res);
       });
       orderInDb.onFailure(throwable -> {
         LOG.error("Some error occurred while placing the order: \n {}", throwable.getMessage());
@@ -104,16 +107,23 @@ public class OrderServiceImpl implements OrderService {
   public void updateOrderById(MongoClient mongoClient, String orderId, String orderStatus,
                               RoutingContext routingContext) {
 
-    Future<OrderResponse> orderInDb = this.orderDao.updateOrder(mongoClient, orderId, orderStatus);
-    orderInDb.onSuccess(res -> {
-      LOG.info("Order updated successfully with Id: {}", res.getOrderId());
-      responseBuilder.handleSuccessResponse(routingContext, res);
-    });
-    orderInDb.onFailure(throwable -> {
-      LOG.error("Some error occurred while updating the order: \n {}", throwable.getMessage());
-      responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE,
+    if (OrderStatus.isValid(orderStatus)) {
+      Future<OrderResponse> orderInDb =
+          this.orderDao.updateOrder(mongoClient, orderId, orderStatus);
+      orderInDb.onSuccess(res -> {
+        LOG.info("Order updated successfully with Id: {}", res.getOrderId());
+        responseBuilder.handleSuccessResponse(routingContext, SUCCESS_STATUS_CODE, res);
+      });
+      orderInDb.onFailure(throwable -> {
+        LOG.error("Some error occurred while updating the order: \n {}", throwable.getMessage());
+        responseBuilder.handleFailureResponse(routingContext, ERROR_STATUS_CODE,
+            new ApiErrorResponse("Some error occurred while updating the order",
+                throwable.getMessage()));
+      });
+    } else {
+      responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE,
           new ApiErrorResponse("Some error occurred while updating the order",
-              throwable.getMessage()));
-    });
+              "Please provide a valid order status value"));
+    }
   }
 }
