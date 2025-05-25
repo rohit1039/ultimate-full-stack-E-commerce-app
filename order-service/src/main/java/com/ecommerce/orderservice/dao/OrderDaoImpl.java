@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -237,28 +237,37 @@ public class OrderDaoImpl implements OrderDao {
                                            String orderStatus) {
 
     Promise<OrderResponse> promise = Promise.promise();
-    mongoClient.findOneAndUpdate(COLLECTION, new JsonObject().put(ORDER_ID, orderId),
-                   new JsonObject().put(SET,
-                       new JsonObject().put(ORDER_STATS, OrderStatus.valueOf(orderStatus))))
-               .flatMap(updatedRecord -> mongoClient.findOne(COLLECTION,
-                   new JsonObject().put(ORDER_ID, orderId), null))
-               .subscribe(updatedData -> {
-                 if (!Objects.isNull(updatedData)) {
-                   OrderResponse orderResponse = new OrderResponse();
-                   orderResponse.setOrderStatus(
-                       OrderStatus.valueOf(updatedData.getString(ORDER_STATS)));
-                   orderResponse.setOrderId(updatedData.getString(ORDER_ID));
-                   promise.complete(orderResponse);
-                 } else {
-                   promise.fail("Unable to fetch updated order details.");
-                 }
-               }, error -> {
-                 LOG.error("Error occurred while updating order in database: {}",
-                     error.getMessage());
-                 promise.fail("Database update failed.");
-               });
+
+    JsonObject query = new JsonObject().put(ORDER_ID, orderId);
+
+    mongoClient
+        .rxFindOne(COLLECTION, query, null)
+        .switchIfEmpty(Single.error(
+            new NoSuchElementException("Order not found with orderId: " + orderId)))
+        .flatMap(doc -> {
+          JsonObject update = new JsonObject()
+              .put(SET, new JsonObject().put(ORDER_STATS,
+                  OrderStatus.valueOf(orderStatus)));
+          return mongoClient.rxUpdateCollection(COLLECTION, query, update).toSingle();
+        })
+        .flatMap(updateResult ->
+            mongoClient.rxFindOne(COLLECTION, query, null)
+                       .switchIfEmpty(Single.error(
+                           new IllegalStateException("Updated order with orderId: "
+                               + orderId + "not found"))))
+        .subscribe(updatedDoc -> {
+          OrderResponse response = new OrderResponse();
+          response.setOrderId(updatedDoc.getString(ORDER_ID));
+          response.setOrderStatus(OrderStatus.valueOf(updatedDoc.getString(ORDER_STATS)));
+          promise.complete(response);
+          }, error -> {
+            LOG.error("Failed to update order: {}", error.getMessage());
+            promise.fail(error);
+          });
+
     return promise.future();
   }
+
 
 
   /**
