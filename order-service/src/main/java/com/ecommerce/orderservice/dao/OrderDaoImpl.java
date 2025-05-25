@@ -110,12 +110,12 @@ public class OrderDaoImpl implements OrderDao {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a");
         LocalDateTime orderDate = LocalDateTime.parse(orderRes.getString(ORDER_PLACED_AT), formatter);
         return OrderResponseList.builder()
-                                .orderId(orderRes.getString(ORDER_ID))
-                                .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
-                                .username(orderRes.getString(ORDER_PLACED_BY))
-                                .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
-                                .orderDate(orderDate)
-                                .build();
+                         .orderId(orderRes.getString(ORDER_ID))
+                         .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
+                         .username(orderRes.getString(ORDER_PLACED_BY))
+                         .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
+                         .orderDate(orderDate)
+                         .build();
       }).collect(Collectors.toList()));
 
       return Single.create(emitter ->
