@@ -19,7 +19,6 @@ import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

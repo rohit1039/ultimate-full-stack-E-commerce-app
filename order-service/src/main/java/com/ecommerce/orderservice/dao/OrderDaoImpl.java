@@ -4,8 +4,10 @@ import static com.ecommerce.orderservice.constant.ApiConstants.COLLECTION;
 import static com.ecommerce.orderservice.constant.ApiConstants.HOST;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ID;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ITEMS;
+import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_PLACED_AT;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_PLACED_BY;
 import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_STATS;
+import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_UPDATED_AT;
 import static com.ecommerce.orderservice.constant.ApiConstants.PORT;
 import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_BY_ID_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_ID;
@@ -30,6 +32,8 @@ import io.vertx.rxjava3.core.Promise;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.client.WebClient;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -102,14 +106,17 @@ public class OrderDaoImpl implements OrderDao {
              .map(item -> ((JsonObject) item).getInteger(PRODUCT_ID))
              .collect(Collectors.toList());
 
-      orders.set(res.stream().map(orderRes ->
-          OrderResponseList.builder()
-                           .orderId(orderRes.getString(ORDER_ID))
-                           .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
-                           .username(orderRes.getString(ORDER_PLACED_BY))
-                           .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
-                           .build())
-                    .collect(Collectors.toList()));
+      orders.set(res.stream().map(orderRes -> {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a");
+        LocalDateTime orderDate = LocalDateTime.parse(orderRes.getString(ORDER_PLACED_AT), formatter);
+        return OrderResponseList.builder()
+                                .orderId(orderRes.getString(ORDER_ID))
+                                .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
+                                .username(orderRes.getString(ORDER_PLACED_BY))
+                                .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
+                                .orderDate(orderDate)
+                                .build();
+      }).collect(Collectors.toList()));
 
       return Single.create(emitter ->
           findProductById(allProductIds).onSuccess(emitter::onSuccess).onFailure(emitter::onError));
@@ -174,14 +181,16 @@ public class OrderDaoImpl implements OrderDao {
              .map(item -> ((JsonObject) item).getInteger(PRODUCT_ID))
              .collect(Collectors.toList());
 
-      orders.set(res.stream().map(orderRes ->
-          OrderResponseList.builder()
+      orders.set(res.stream().map(orderRes -> {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a");
+        LocalDateTime orderDate = LocalDateTime.parse(orderRes.getString(ORDER_PLACED_AT), formatter);
+        return OrderResponseList.builder()
                            .orderId(orderRes.getString(ORDER_ID))
                            .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
                            .username(orderRes.getString(ORDER_PLACED_BY))
                            .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
-                           .build())
-                    .collect(Collectors.toList()));
+                           .orderDate(orderDate).build();
+      }).collect(Collectors.toList()));
 
       return Single.create(emitter ->
           findProductById(allProductIds).onSuccess(emitter::onSuccess).onFailure(emitter::onError));
@@ -247,7 +256,9 @@ public class OrderDaoImpl implements OrderDao {
         .flatMap(doc -> {
           JsonObject update = new JsonObject()
               .put(SET, new JsonObject().put(ORDER_STATS,
-                  OrderStatus.valueOf(orderStatus)));
+                  OrderStatus.valueOf(orderStatus)))
+              .put(SET, new JsonObject().put(ORDER_UPDATED_AT,
+                  LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a"))));
           return mongoClient.rxUpdateCollection(COLLECTION, query, update).toSingle();
         })
         .flatMap(updateResult ->
