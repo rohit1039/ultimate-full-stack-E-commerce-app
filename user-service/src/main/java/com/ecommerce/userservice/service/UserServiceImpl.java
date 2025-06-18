@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
   public UserDTOResponse updateUser(UpdateUserDTO updateUserDTO, String username) {
 
     Query query = new Query();
-    query.addCriteria(Criteria.where("emailID").is(username));
+    query.addCriteria(Criteria.where("_id").is(username));
     User userInDB = this.mongoTemplate.findOne(query, User.class);
     if (userInDB != null) {
       if (userInDB.isEnabled()) {

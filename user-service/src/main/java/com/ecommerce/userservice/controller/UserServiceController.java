@@ -382,7 +382,7 @@ public class UserServiceController {
     UpdateUserDTO updateUserDTO = this.modelMapper.map(userDTO, UpdateUserDTO.class);
     this.userService.updateUser(updateUserDTO, username);
     LOGGER.info("***** Image uploaded successfully! *****");
-    return new ResponseEntity<>("Image uploaded successfully!", HttpStatus.OK);
+    return new ResponseEntity<>("Image uploaded successfully 🙂", HttpStatus.OK);
   }
 
   /**
