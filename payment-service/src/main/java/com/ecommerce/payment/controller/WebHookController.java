@@ -1,9 +1,12 @@
 package com.ecommerce.payment.controller;
 
+import static com.ecommerce.payment.constants.Constant.ORDER_SERVICE_SERVER_URL;
+
 import com.ecommerce.payment.dao.PaymentRepository;
 import com.ecommerce.payment.model.Payment;
 import com.ecommerce.payment.payload.request.PaymentMethod;
 import com.ecommerce.payment.payload.request.PaymentStatus;
+import com.ecommerce.payment.payload.request.PaymentStatusUpdate;
 import com.ecommerce.payment.service.PaymentService;
 import com.razorpay.RazorpayClient;
 import com.razorpay.Utils;
@@ -11,12 +14,16 @@ import java.util.Optional;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 @RestController
 public class WebHookController {
@@ -30,6 +37,8 @@ public class WebHookController {
   private String apiSecret;
 
   @Autowired private PaymentRepository paymentRepository;
+
+  @Autowired private RestTemplate restTemplate;
 
   @PostMapping("/webhook/razorpay")
   public ResponseEntity<String> handleWebhook(
@@ -76,11 +85,27 @@ public class WebHookController {
           dbPayment.setPaymentStatus(PaymentStatus.FAILED);
         }
         paymentRepository.save(dbPayment);
+
+        PaymentStatusUpdate updateRequest =
+            new PaymentStatusUpdate(dbPayment.getOrderId(), dbPayment.getPaymentStatus().name(), dbPayment.getPaymentMethod().name());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<PaymentStatusUpdate> requestEntity = new HttpEntity<>(updateRequest, headers);
+
+        ResponseEntity<Void> response =
+            restTemplate.postForEntity(ORDER_SERVICE_SERVER_URL, requestEntity, Void.class);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+          return ResponseEntity.ok("Webhook processed and order status updated.");
+        } else {
+          return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+              .body("Webhook processed but failed to update order.");
+        }
       }
-      return ResponseEntity.ok("Webhook handled");
     } catch (Exception e) {
-      e.printStackTrace();
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error handling webhook");
+      throw new RuntimeException(e.getMessage());
     }
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error handling webhook");
   }
 }

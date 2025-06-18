@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,7 +33,7 @@ public class PaymentController {
   @Autowired private PaymentRepository paymentRepository;
 
   @PostMapping("/checkout/{orderId}")
-  public ResponseEntity<?> checkoutProducts(
+  public ResponseEntity<PaymentResponse> checkoutProducts(
       @PathVariable String orderId,
       @Schema(hidden = true) @RequestHeader(name = "fullname") String fullName,
       @Schema(hidden = true) @RequestHeader(name = "username") String username,
@@ -45,5 +46,13 @@ public class PaymentController {
             orderId, fullName, contactNumber, username, paymentRequest);
 
     return ResponseEntity.status(HttpStatus.OK).body(paymentResponse);
+  }
+
+  @GetMapping("/status/{orderId}")
+  public ResponseEntity<String> getPaymentStatus(@PathVariable String orderId) {
+
+    String paymentStatus = this.paymentService.getPaymentStatus(orderId);
+
+    return ResponseEntity.status(HttpStatus.OK).body(paymentStatus);
   }
 }

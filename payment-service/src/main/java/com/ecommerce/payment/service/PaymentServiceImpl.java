@@ -8,6 +8,7 @@ import com.ecommerce.payment.payload.response.PaymentResponse;
 import com.razorpay.PaymentLink;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import java.util.Optional;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,5 +65,16 @@ public class PaymentServiceImpl implements PaymentService {
 
     return new PaymentResponse(
         PaymentStatus.PENDING.name(), paymentLink.get("id"), paymentLink.get("short_url"));
+  }
+
+  @Override
+  public String getPaymentStatus(String orderId) {
+
+    Payment payment = this.paymentRepository.findByOrderId(orderId);
+    payment =
+        Optional.ofNullable(payment)
+            .orElseThrow(() -> new RuntimeException("Payment doesn't exist with orderId: " + orderId));
+
+    return payment.getPaymentStatus().name();
   }
 }

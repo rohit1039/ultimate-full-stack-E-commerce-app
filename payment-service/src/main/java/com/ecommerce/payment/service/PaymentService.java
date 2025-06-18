@@ -5,11 +5,13 @@ import com.ecommerce.payment.payload.response.PaymentResponse;
 import com.razorpay.RazorpayException;
 
 public interface PaymentService {
-  public PaymentResponse checkoutProducts(
+  PaymentResponse checkoutProducts(
       String orderId,
       String fullName,
       String contactNumber,
       String username,
       PaymentRequest paymentRequest)
       throws RazorpayException;
+
+  String getPaymentStatus(String orderId);
 }

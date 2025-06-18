@@ -12,15 +12,18 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PaymentRequest implements Serializable {
   private Long totalAmount;
-  @JsonIgnore private PaymentStatus paymentStatus;
-
+  @JsonIgnore
+  private PaymentStatus paymentStatus;
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy hh:mm:ss a")
   @JsonIgnore
   private LocalDateTime paymentDate;
 
   public PaymentRequest() {}
 
-  public PaymentRequest(Long totalAmount, PaymentStatus paymentStatus, LocalDateTime paymentDate) {
+  public PaymentRequest(
+      Long totalAmount,
+      PaymentStatus paymentStatus,
+      LocalDateTime paymentDate) {
 
     this.totalAmount = totalAmount;
     this.paymentStatus = paymentStatus;
