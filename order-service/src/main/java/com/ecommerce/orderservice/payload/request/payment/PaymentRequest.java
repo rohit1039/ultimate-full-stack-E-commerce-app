@@ -21,11 +21,7 @@ import lombok.ToString;
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PaymentRequest {
 
-  private String transactionId;
-  private PaymentMethod paymentMethod;
-  private PaymentStatus status;
-  private String username;
-
+  private Float totalAmount;
   @JsonInclude(value = JsonInclude.Include.NON_NULL)
   @JsonFormat(pattern = "dd/MM/yyyy hh:mm:ss a")
   @JsonSerialize(using = LocalDateTimeSerializer.class)

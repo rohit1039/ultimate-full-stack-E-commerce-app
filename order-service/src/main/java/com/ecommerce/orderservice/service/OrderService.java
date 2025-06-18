@@ -8,13 +8,16 @@ import java.util.List;
 
 public interface OrderService {
 
-  void saveOrder(MongoClient mongoClient, JsonObject requestBody, String username, List<ApiErrorResponse> errorResponses,
-                 RoutingContext routingContext);
+  void saveOrder(MongoClient mongoClient, JsonObject requestBody, String username,
+                 List<ApiErrorResponse> errorResponses, RoutingContext routingContext);
 
   void updateOrderById(MongoClient mongoClient, String orderId, String orderStatus,
                        RoutingContext routingContext);
 
   void retrieveOrders(MongoClient mongoClient, String username, RoutingContext routingContext);
+
+  void updateOrderStats(MongoClient mongoClient, String orderId, String paymentStatus,
+                        String paymentMethod, RoutingContext routingContext);
 
   void retrieveAllOrders(MongoClient mongoClient, RoutingContext routingContext);
 }

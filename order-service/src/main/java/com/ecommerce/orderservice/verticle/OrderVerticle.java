@@ -2,9 +2,10 @@ package com.ecommerce.orderservice.verticle;
 
 import static com.ecommerce.orderservice.constant.ApiConstants.GET_ALL_ORDERS_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.GET_ORDERS_BY_USER_ENDPOINT;
-import static com.ecommerce.orderservice.constant.ApiConstants.ID;
+import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ID;
 import static com.ecommerce.orderservice.constant.ApiConstants.PLACE_ORDER_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.STATUS;
+import static com.ecommerce.orderservice.constant.ApiConstants.UPDATE_ORDER_PAYMENT_STATS_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.UPDATE_ORDER_STATS_ENDPOINT;
 import static com.ecommerce.orderservice.constant.ApiConstants.USERNAME;
 
@@ -46,6 +47,7 @@ public class OrderVerticle extends MainVerticle {
     parentRoute.get(GET_ORDERS_BY_USER_ENDPOINT).handler(this::getOrder);
     parentRoute.get(GET_ALL_ORDERS_ENDPOINT).handler(this::getOrders);
     parentRoute.patch(UPDATE_ORDER_STATS_ENDPOINT).handler(this::updateOrder);
+    parentRoute.post(UPDATE_ORDER_PAYMENT_STATS_ENDPOINT).handler(this::updateOrderPaymentStats);
   }
 
   public void placeOrder(RoutingContext routingContext) {
@@ -65,10 +67,32 @@ public class OrderVerticle extends MainVerticle {
 
     LOG.info("Inside updateOrder");
     MultiMap params = routingContext.queryParams();
-    String orderId = params.get(ID);
+    String orderId = params.get(ORDER_ID);
     String orderStatus = params.get(STATUS);
     this.orderService.updateOrderById(ConfigLoader.mongoConfig(), orderId, orderStatus,
         routingContext);
+  }
+
+  /**
+   * @param routingContext to receive updated payment status
+   */
+  public void updateOrderPaymentStats(RoutingContext routingContext) {
+
+    try {
+      JsonObject body = routingContext.body().asJsonObject();
+
+      String orderId = body.getString("orderId");
+      String paymentStatus = body.getString("paymentStatus");
+      String paymentMethod = body.getString("paymentMethod");
+
+      if (orderId == null || paymentStatus == null) {
+        routingContext.response().setStatusCode(400).end("Missing orderId or paymentStatus");
+      }
+      this.orderService.updateOrderStats(ConfigLoader.mongoConfig(), orderId, paymentStatus,
+          paymentMethod, routingContext);
+    } catch (Exception e) {
+      routingContext.response().setStatusCode(500).end("Invalid request payload");
+    }
   }
 
   /**

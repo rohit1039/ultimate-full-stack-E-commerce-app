@@ -1,6 +1,7 @@
 package com.ecommerce.orderservice.payload.response;
 
 import com.ecommerce.orderservice.payload.request.order.OrderStatus;
+import com.ecommerce.orderservice.payload.request.payment.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -25,6 +26,7 @@ public class OrderResponse {
   private Long totalAmount;
   private String username;
   private Integer productId;
+  private PaymentStatus paymentStatus;
   private OrderStatus orderStatus;
   private LocalDateTime orderDate;
   private LocalDateTime cancelDate;

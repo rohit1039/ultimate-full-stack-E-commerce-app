@@ -23,8 +23,9 @@ import lombok.ToString;
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PaymentResponse {
 
-  private String transactionId;
+  private String paymentLinkId;
   private PaymentMethod paymentMethod;
+  private String paymentLinkUrl;
   private PaymentStatus status;
 
   @JsonInclude(value = JsonInclude.Include.NON_NULL)

@@ -1,5 +1,6 @@
 package com.ecommerce.orderservice.service;
 
+import static com.ecommerce.orderservice.constant.ApiConstants.AUTH_HEADER;
 import static com.ecommerce.orderservice.constant.ApiConstants.BAD_REQUEST_STATUS_CODE;
 import static com.ecommerce.orderservice.constant.ApiConstants.CREATED_STATUS_CODE;
 import static com.ecommerce.orderservice.constant.ApiConstants.ERROR_STATUS_CODE;
@@ -49,6 +50,20 @@ public class OrderServiceImpl implements OrderService {
                       List.of(new ApiErrorResponse("No username provided in request header",
                           "Please authenticate through JWT")));
                 });
+  }
+
+  @Override
+  public void updateOrderStats(MongoClient mongoClient, String orderId, String paymentStatus,
+                               String paymentMethod, RoutingContext routingContext) {
+
+    Future<OrderResponse> orders =
+        orderDao.updateOrderStats(mongoClient, orderId, paymentStatus, paymentMethod);
+    orders.onSuccess(res -> {
+            LOG.info("Order status updated successfully with id: {}", orderId);
+            responseBuilder.handleSuccessResponse(routingContext, SUCCESS_STATUS_CODE, res);
+          })
+          .onFailure(throwable -> handleFailureResponse(routingContext, throwable,
+              "Some error occurred while updating order status with id: " + orderId));
   }
 
   private void handleRetrieveOrders(MongoClient mongoClient, String username,
@@ -161,8 +176,10 @@ public class OrderServiceImpl implements OrderService {
     orderRequest.setOrderUpdatedAt(LocalDateTime.now());
     orderRequest.setOrderPlacedBy(username);
 
+    String token = routingContext.request().getHeader(AUTH_HEADER);
+
     Optional.ofNullable(username).ifPresentOrElse(user -> {
-      Future<OrderResponse> orderInDb = orderDao.saveOrder(mongoClient, orderRequest);
+      Future<OrderResponse> orderInDb = orderDao.saveOrder(mongoClient, orderRequest, token);
       orderInDb.onSuccess(res -> {
                  LOG.info("Order placed successfully with Id: {}", res.getOrderId());
                  responseBuilder.handleSuccessResponse(routingContext, CREATED_STATUS_CODE, res);

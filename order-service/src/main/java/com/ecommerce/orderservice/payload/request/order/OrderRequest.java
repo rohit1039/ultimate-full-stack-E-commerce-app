@@ -1,5 +1,6 @@
 package com.ecommerce.orderservice.payload.request.order;
 
+import com.ecommerce.orderservice.payload.request.payment.PaymentMethod;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -34,6 +35,9 @@ public class OrderRequest implements Serializable {
   @JsonFormat(pattern = "dd/MM/yyyy hh:mm:ss a")
   private LocalDateTime orderUpdatedAt;
   private OrderStatus orderStatus;
+  private Long address;
+  private PaymentMethod paymentMethod;
+  private Float totalAmount;
   private String orderPlacedBy;
 
   public static JsonObject toJson(OrderRequest orderRequest) throws JsonProcessingException {
