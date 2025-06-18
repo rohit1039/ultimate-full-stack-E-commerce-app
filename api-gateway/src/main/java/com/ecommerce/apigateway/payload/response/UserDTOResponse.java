@@ -20,6 +20,7 @@ import org.springframework.hateoas.server.core.Relation;
   "password",
   "firstName",
   "lastName",
+  "contactNumber",
   "avatarName",
   "age",
   "enabled",
@@ -37,6 +38,8 @@ public class UserDTOResponse extends CollectionModel<UserDTOResponse> {
   private String firstName;
 
   private String lastName;
+
+  private String contactNumber;
 
   private int age;
 

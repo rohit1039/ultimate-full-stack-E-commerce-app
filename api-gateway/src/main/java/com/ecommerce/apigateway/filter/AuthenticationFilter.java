@@ -61,6 +61,12 @@ public class AuthenticationFilter implements WebFilter {
                           .getRequest()
                           .mutate()
                           .header("username", principal.getUsername())
+                          .header(
+                              "fullname",
+                              principal.getUser().getFirstName()
+                                  + " "
+                                  + principal.getUser().getLastName())
+                          .header("contact", principal.getUser().getContactNumber())
                           .header("role", principal.getUser().getRole().name())
                           .build();
 

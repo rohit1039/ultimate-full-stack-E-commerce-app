@@ -13,7 +13,15 @@ import lombok.*;
 @ToString
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonPropertyOrder({"emailId", "password", "firstName", "lastName", "avatarName", "age"})
+@JsonPropertyOrder({
+  "emailId",
+  "password",
+  "firstName",
+  "lastName",
+  "contactNumber",
+  "avatarName",
+  "age"
+})
 public class UserDTO {
 
   @Email(
@@ -50,6 +58,10 @@ public class UserDTO {
   @NotBlank
   @Schema(description = "lastname of the user", example = "User")
   private String lastName;
+
+  @NotBlank
+  @Schema(description = "contact number of the user", example = "123456789")
+  private String contactNumber;
 
   @Positive
   @Schema(description = "age of the user", example = "1")

@@ -37,6 +37,10 @@ spring:
           uri: lb://order-service
           predicates:
             - Path=/orders/**
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/webhook/razorpay, /payments/**
 
   main:
     web-application-type: reactive
@@ -78,6 +82,10 @@ springdoc:
       url: /products/v3/api-docs
       name: Product Service
       primaryName: Product Service
+    urls[4]:
+      url: /payments/v3/api-docs
+      name: Payment Service
+      primaryName: Payment Service
   enable-native-support: true
   api-docs.enabled: true
 

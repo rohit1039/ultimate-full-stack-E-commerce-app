@@ -1,6 +1,5 @@
 package com.ecommerce.apigateway.model;
 
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +27,9 @@ public class User {
   @Field(name = "avatar_name")
   private String avatarName;
 
+  @Field(name = "contact_number")
+  private String contactNumber;
+
   @Field(name = "first_name")
   private String firstName;
 
@@ -42,30 +44,4 @@ public class User {
 
   @Field(name = "role")
   private Role role;
-
-  @Override
-  public boolean equals(Object o) {
-
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    User user = (User) o;
-    return isEnabled == user.isEnabled
-        && Objects.equals(emailId, user.emailId)
-        && Objects.equals(password, user.password)
-        && Objects.equals(avatarName, user.avatarName)
-        && Objects.equals(firstName, user.firstName)
-        && Objects.equals(lastName, user.lastName)
-        && Objects.equals(age, user.age)
-        && role == user.role;
-  }
-
-  @Override
-  public int hashCode() {
-
-    return Objects.hash(emailId, password, avatarName, firstName, lastName, age, isEnabled, role);
-  }
 }

@@ -151,7 +151,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
    * @param subject the email subject
    */
   @Override
-  @Async("asyncTaskExecutor")
+  @Async
   public CompletableFuture<Void> sendMail(String to, String fullName, String subject) {
 
     CompletableFuture<Void> future = new CompletableFuture<>();
