@@ -71,7 +71,10 @@ public class ProductServiceImpl implements ProductService {
    * @return The list of products saved to the database.
    */
   @Override
-  @Caching(evict = {@CacheEvict(value = CACHE_NAME, allEntries = true)})
+  @Caching(
+      evict = {
+        @CacheEvict(value = CACHE_NAME, key = "productRequest.productName", allEntries = true)
+      })
   public ProductResponseDTO saveProductToDB(
       ProductRequestDTO productRequest, Integer categoryId, String username, String role) {
     // make a GET request to the category service to get the category
@@ -92,7 +95,6 @@ public class ProductServiceImpl implements ProductService {
       Product product = modelMapper.map(productRequest, Product.class);
       product.setCreatedAt(LocalDateTime.now());
       product.setShortDescription(product.getShortDescription());
-      product.setProductId(mongoSequenceGenerator.generateSequence(Product.SEQUENCE_NAME));
       if (categoryResponse.getStatusCode().is2xxSuccessful()) {
         product.setProductCount(product.getProductCount());
         product.setProductColor(product.getProductColor().toLowerCase());

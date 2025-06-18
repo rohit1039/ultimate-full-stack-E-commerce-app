@@ -10,6 +10,8 @@ import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -27,7 +29,7 @@ public class RedisConfig implements CachingConfigurer {
   private String host;
 
   @Value(value = "${spring.redis.port}")
-  private String port;
+  private Integer port;
 
   @Value(value = "${redis.timeout}")
   private String timeout;
@@ -36,8 +38,8 @@ public class RedisConfig implements CachingConfigurer {
   public JedisConnectionFactory jedisConnectionFactory() {
 
     RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-    redisStandaloneConfiguration.setHostName("localhost");
-    redisStandaloneConfiguration.setPort(6379);
+    redisStandaloneConfiguration.setHostName(host);
+    redisStandaloneConfiguration.setPort(port);
     JedisClientConfiguration.JedisClientConfigurationBuilder jedisClientConfiguration =
         JedisClientConfiguration.builder();
     jedisClientConfiguration.connectTimeout(Duration.ofSeconds(Integer.parseInt(timeout)));
@@ -56,6 +58,15 @@ public class RedisConfig implements CachingConfigurer {
     redisTemplate.setHashKeySerializer(new GenericJackson2JsonRedisSerializer());
     redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
     return redisTemplate;
+  }
+
+  @Bean
+  public RedisCacheManager cacheManager() {
+
+    RedisCacheConfiguration config =
+        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10));
+
+    return RedisCacheManager.builder(jedisConnectionFactory()).cacheDefaults(config).build();
   }
 
   @Override
