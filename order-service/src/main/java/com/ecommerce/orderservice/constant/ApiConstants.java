@@ -19,8 +19,7 @@ public class ApiConstants {
   public static final String GET_ALL_ORDERS_ENDPOINT = "/orders/all"; // only by admins
   public static final String GET_ORDERS_BY_USER_ENDPOINT = "/orders/get-orders";
   public static final String UPDATE_ORDER_STATS_ENDPOINT = "/orders"; // only by admins
-  public static final String UPDATE_ORDER_PAYMENT_STATS_ENDPOINT = "/orders/update-status";
-      // only by admins
+  public static final String UPDATE_ORDER_PAYMENT_STATS_ENDPOINT = "/orders/update-status"; // only by admins
   public static final String STATUS = "status";
   public static final String ID = "id";
   public static final String SET = "$set";

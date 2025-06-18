@@ -56,14 +56,12 @@ public class OrderServiceImpl implements OrderService {
   public void updateOrderStats(MongoClient mongoClient, String orderId, String paymentStatus,
                                String paymentMethod, RoutingContext routingContext) {
 
-    Future<OrderResponse> orders =
-        orderDao.updateOrderStats(mongoClient, orderId, paymentStatus, paymentMethod);
+    Future<OrderResponse> orders = orderDao.updateOrderStats(mongoClient, orderId, paymentStatus, paymentMethod);
     orders.onSuccess(res -> {
-            LOG.info("Order status updated successfully with id: {}", orderId);
-            responseBuilder.handleSuccessResponse(routingContext, SUCCESS_STATUS_CODE, res);
-          })
-          .onFailure(throwable -> handleFailureResponse(routingContext, throwable,
-              "Some error occurred while updating order status with id: " + orderId));
+      LOG.info("Order status updated successfully with id: {}", orderId);
+      responseBuilder.handleSuccessResponse(routingContext, SUCCESS_STATUS_CODE, res);
+    }).onFailure(throwable -> handleFailureResponse(routingContext, throwable,
+        "Some error occurred while updating order status with id: " + orderId));
   }
 
   private void handleRetrieveOrders(MongoClient mongoClient, String username,

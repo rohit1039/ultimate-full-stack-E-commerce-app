@@ -74,6 +74,7 @@ public class OrderVerticle extends MainVerticle {
   }
 
   /**
+   *
    * @param routingContext to receive updated payment status
    */
   public void updateOrderPaymentStats(RoutingContext routingContext) {
@@ -86,10 +87,10 @@ public class OrderVerticle extends MainVerticle {
       String paymentMethod = body.getString("paymentMethod");
 
       if (orderId == null || paymentStatus == null) {
-        routingContext.response().setStatusCode(400).end("Missing orderId or paymentStatus");
+        routingContext.response()
+           .setStatusCode(400).end("Missing orderId or paymentStatus");
       }
-      this.orderService.updateOrderStats(ConfigLoader.mongoConfig(), orderId, paymentStatus,
-          paymentMethod, routingContext);
+      this.orderService.updateOrderStats(ConfigLoader.mongoConfig(), orderId, paymentStatus, paymentMethod, routingContext);
     } catch (Exception e) {
       routingContext.response().setStatusCode(500).end("Invalid request payload");
     }

@@ -65,50 +65,43 @@ public class OrderDaoImpl implements OrderDao {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
-   * This is a helper method to convert Vert.x Future to Single
-   */
-  public static <T> Single<T> toSingle(io.vertx.core.Future<T> future) {
-
-    return Single.create(emitter -> future.onComplete(ar -> {
-      if (ar.succeeded()) {
-        emitter.onSuccess(ar.result());
-      } else {
-        emitter.onError(ar.cause());
-      }
-    }));
-  }
-
-  /**
    * Saves an order in the database.
    *
-   * @param mongoClient  the MongoDB client
+   * @param mongoClient the MongoDB client
    * @param orderRequest the order request containing details of the order to be saved
    * @return a Future that will complete with the order response
    */
   @Override
-  public Future<OrderResponse> saveOrder(MongoClient mongoClient, OrderRequest orderRequest,
-                                         String token) {
+  public Future<OrderResponse> saveOrder(MongoClient mongoClient, OrderRequest orderRequest, String token) {
 
     List<OrderItemRequest> orderItems = orderRequest.getOrderItems();
 
-    return SingleHelper.toFuture(
-        toSingle(validateProducts(orderItems)).flatMap(validatedProducts -> {
+    return SingleHelper.toFuture(toSingle(validateProducts(orderItems))
+        .flatMap(validatedProducts -> {
           List<Integer> productIds =
-              orderItems.stream().map(OrderItemRequest::getProductId).collect(Collectors.toList());
+              orderItems.stream()
+                        .map(OrderItemRequest::getProductId)
+                        .collect(Collectors.toList());
 
-          return Single.create(emitter -> findProductById(productIds).onSuccess(emitter::onSuccess)
-                                                                     .onFailure(emitter::onError));
-        }).flatMap(productResponses -> {
-          List<ProductResponse> productList = objectMapper.convertValue(productResponses,
-              new TypeReference<List<ProductResponse>>() {
-              });
+          return Single.create(emitter ->
+              findProductById(productIds)
+                  .onSuccess(emitter::onSuccess)
+                  .onFailure(emitter::onError)
+          );
+        })
+        .flatMap(productResponses -> {
+          List<ProductResponse> productList = objectMapper.convertValue(
+              productResponses, new TypeReference<List<ProductResponse>>() {}
+          );
 
-          long totalQuantity = orderItems.stream().mapToLong(OrderItemRequest::getQuantity).sum();
+          long totalQuantity = orderItems.stream()
+                                         .mapToLong(OrderItemRequest::getQuantity)
+                                         .sum();
 
-          float unitAmount = (float) productList.stream()
-                                                .collect(Collectors.summarizingDouble(
-                                                    ProductResponse::getTotalPrice))
-                                                .getSum();
+          float unitAmount =
+              (float) productList.stream()
+                                 .collect(Collectors.summarizingDouble(ProductResponse::getTotalPrice))
+                                 .getSum();
 
           float totalAmount = unitAmount * totalQuantity;
 
@@ -122,65 +115,131 @@ public class OrderDaoImpl implements OrderDao {
           }
 
           return mongoClient.rxSave(COLLECTION, orderJson)
-                            .switchIfEmpty(
-                                Single.error(new IllegalStateException("Failed to save order")))
-                            .flatMap(orderId -> {
-                              LOG.info("processPayment called with orderId :: " + orderId);
+           .switchIfEmpty(Single.error(new IllegalStateException("Failed to save order")))
+           .flatMap(orderId -> {
+             LOG.info("processPayment called with orderId :: " + orderId);
 
-                              PaymentRequest paymentRequest = new PaymentRequest();
-                              paymentRequest.setPaymentDate(LocalDateTime.now());
-                              paymentRequest.setTotalAmount(totalAmount);
+             PaymentRequest paymentRequest = new PaymentRequest();
+             paymentRequest.setPaymentDate(LocalDateTime.now());
+             paymentRequest.setTotalAmount(totalAmount);
 
-                              return Single.<PaymentResponse>create(
-                                               emitter -> processPayment(orderId, paymentRequest,
-                                                   token).onComplete(ar -> {
-                                                 if (ar.succeeded()) {
-                                                   emitter.onSuccess(ar.result());
-                                                 } else {
-                                                   emitter.onError(ar.cause());
-                                                 }
-                                               }))
-                                           .flatMap(paymentResponse -> Single.create(
-                                                                                 emitter -> fetchPaymentStatusFromDb(orderId,
-                                                                                     token).onComplete(ar -> {
-                                                                                   if (ar.succeeded()) {
-                                                                                     emitter.onSuccess(ar.result());
-                                                                                   } else {
-                                                                                     emitter.onError(ar.cause());
-                                                                                   }
-                                                                                 }))
-                                                                             .map(
-                                                                                 latestPayment -> new Object[] {
-                                                                                     orderId,
-                                                                                     latestPayment,
-                                                                                     totalAmount}));
-                            });
-        }).flatMap(arr -> {
+             return Single.<PaymentResponse>create(emitter ->
+                 processPayment(orderId, paymentRequest, token).onComplete(ar -> {
+                   if (ar.succeeded()) {
+                     emitter.onSuccess(ar.result());
+                   } else {
+                     emitter.onError(ar.cause());
+                   }
+                 })
+             ).flatMap(paymentResponse -> Single.create(emitter -> fetchPaymentStatusFromDb(orderId, token)
+                 .onComplete(ar -> {
+                   if (ar.succeeded()) {
+                     emitter.onSuccess(ar.result());
+                   } else {
+                     emitter.onError(ar.cause());
+                   }
+                 })).map(latestPayment -> new Object[] { orderId, latestPayment, totalAmount }));
+           });
+        })
+        .flatMap(arr -> {
           String orderId = (String) arr[0];
           String paymentStatus = (String) arr[1];
           float totalAmount = (Float) arr[2];
 
-          String newStatus = PaymentStatus.SUCCESS.name().equalsIgnoreCase(paymentStatus) ?
-              OrderStatus.CONFIRMED.name() : OrderStatus.AWAITING_PAYMENT.name();
+          String newStatus = PaymentStatus.SUCCESS.name().equalsIgnoreCase(paymentStatus)
+              ? OrderStatus.CONFIRMED.name()
+              : OrderStatus.AWAITING_PAYMENT.name();
 
-          JsonObject update =
-              new JsonObject().put(SET, new JsonObject().put(ORDER_STATS, newStatus));
+          JsonObject update = new JsonObject().put(SET, new JsonObject().put(ORDER_STATS, newStatus));
           JsonObject query = new JsonObject().put(ORDER_ID, orderId);
 
           return mongoClient.rxUpdateCollection(COLLECTION, query, update)
-                            .switchIfEmpty(Single.error(
-                                new IllegalStateException("Failed to update order status")))
-                            .flatMap(updated -> mongoClient.rxFindOne(COLLECTION,
-                                new JsonObject().put(ORDER_ID, orderId), null).toSingle())
-                            .map(orderDoc -> {
-                              OrderResponse response = new OrderResponse();
-                              response.setOrderId(orderDoc.getString(ORDER_ID));
-                              response.setOrderStatus(
-                                  OrderStatus.valueOf(orderDoc.getString(ORDER_STATS)));
-                              response.setTotalAmount((long) totalAmount);
-                              return response;
-                            });
-        }));
+         .switchIfEmpty(Single.error(new IllegalStateException("Failed to update order status")))
+         .flatMap(updated ->
+             mongoClient.rxFindOne(COLLECTION, new JsonObject().put(ORDER_ID, orderId), null).toSingle()
+         )
+         .map(orderDoc -> {
+           OrderResponse response = new OrderResponse();
+           response.setOrderId(orderDoc.getString(ORDER_ID));
+           response.setOrderStatus(OrderStatus.valueOf(orderDoc.getString(ORDER_STATS)));
+           response.setTotalAmount((long) totalAmount);
+           return response;
+         });
+        })
+    );
+  }
+
+  /**
+   * Retrieves all orders from the database.
+   *
+   * @param mongoClient the MongoDB client
+   * @return a Future that will complete with a list of order response objects
+   */
+  @Override
+  public Future<List<OrderResponseList>> getAllOrders(MongoClient mongoClient) {
+
+    final Promise<List<OrderResponseList>> promise = Promise.promise();
+
+    AtomicReference<List<OrderResponseList>> orders = new AtomicReference<>(new ArrayList<>());
+
+    mongoClient.find(COLLECTION, new JsonObject()).flatMap(res -> {
+
+      List<Integer> allProductIds =
+          res.stream()
+             .flatMap(orderRes -> orderRes.getJsonArray(ORDER_ITEMS).stream())
+             .map(item -> ((JsonObject) item).getInteger(PRODUCT_ID))
+             .collect(Collectors.toList());
+
+      orders.set(res.stream().map(orderRes -> {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a");
+        LocalDateTime orderDate = LocalDateTime.parse(orderRes.getString(ORDER_PLACED_AT), formatter);
+        return OrderResponseList.builder()
+               .orderId(orderRes.getString(ORDER_ID))
+               .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
+               .username(orderRes.getString(ORDER_PLACED_BY))
+               .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
+               .orderDate(orderDate)
+               .build();
+      }).collect(Collectors.toList()));
+
+      return Single.create(emitter ->
+          findProductById(allProductIds).onSuccess(emitter::onSuccess).onFailure(emitter::onError));
+
+    }).flatMap(productResponses -> Single.just(orders.get().stream().peek(order -> {
+      List<ProductResponse> productList = objectMapper.convertValue(productResponses,
+          new TypeReference<List<ProductResponse>>() {});
+      JsonArray jsonArray = order.getOrderItems();
+      List<OrderItemRequest> orderItems = new ArrayList<>();
+      for (int i = 0; i < jsonArray.size(); i++) {
+        JsonObject jsonObject = jsonArray.getJsonObject(i);
+        try {
+          OrderItemRequest itemRequest =
+              objectMapper.treeToValue(objectMapper.readTree(jsonObject.encode()),
+                  OrderItemRequest.class);
+          orderItems.add(itemRequest);
+        } catch (JsonProcessingException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      Map<Integer, ProductResponse> productMap =
+          productList.stream().collect(Collectors.toMap(ProductResponse::getProductId,
+              product -> product, (existing, replacement) -> existing));
+
+      List<ProductResponse> matchingProducts = new ArrayList<>();
+
+      orderItems.forEach(orderItem -> {
+        ProductResponse product = productMap.get(orderItem.getProductId());
+        matchingProducts.add(product);
+      });
+
+      order.setProducts(matchingProducts);
+
+    }).sorted(Comparator.comparing(OrderResponseList::getOrderId)
+                        .reversed()).collect(Collectors.toList())))
+               .doFinally(mongoClient::close)
+               .subscribe(promise::complete, promise::fail);
+
+    return promise.future();
   }
 
   /**
@@ -259,79 +318,6 @@ public class OrderDaoImpl implements OrderDao {
   }
 
   /**
-   * Retrieves all orders from the database.
-   *
-   * @param mongoClient the MongoDB client
-   * @return a Future that will complete with a list of order response objects
-   */
-  @Override
-  public Future<List<OrderResponseList>> getAllOrders(MongoClient mongoClient) {
-
-    final Promise<List<OrderResponseList>> promise = Promise.promise();
-
-    AtomicReference<List<OrderResponseList>> orders = new AtomicReference<>(new ArrayList<>());
-
-    mongoClient.find(COLLECTION, new JsonObject()).flatMap(res -> {
-
-      List<Integer> allProductIds =
-          res.stream()
-             .flatMap(orderRes -> orderRes.getJsonArray(ORDER_ITEMS).stream())
-             .map(item -> ((JsonObject) item).getInteger(PRODUCT_ID))
-             .collect(Collectors.toList());
-
-      orders.set(res.stream().map(orderRes -> {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a");
-        LocalDateTime orderDate = LocalDateTime.parse(orderRes.getString(ORDER_PLACED_AT), formatter);
-        return OrderResponseList.builder()
-                                .orderId(orderRes.getString(ORDER_ID))
-                                .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
-                                .username(orderRes.getString(ORDER_PLACED_BY))
-                                .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
-                                .orderDate(orderDate)
-                                .build();
-      }).collect(Collectors.toList()));
-
-      return Single.create(emitter ->
-          findProductById(allProductIds).onSuccess(emitter::onSuccess).onFailure(emitter::onError));
-
-    }).flatMap(productResponses -> Single.just(orders.get().stream().peek(order -> {
-      List<ProductResponse> productList = objectMapper.convertValue(productResponses,
-          new TypeReference<List<ProductResponse>>() {});
-      JsonArray jsonArray = order.getOrderItems();
-      List<OrderItemRequest> orderItems = new ArrayList<>();
-      for (int i = 0; i < jsonArray.size(); i++) {
-        JsonObject jsonObject = jsonArray.getJsonObject(i);
-        try {
-          OrderItemRequest itemRequest =
-              objectMapper.treeToValue(objectMapper.readTree(jsonObject.encode()),
-                  OrderItemRequest.class);
-          orderItems.add(itemRequest);
-        } catch (JsonProcessingException e) {
-          throw new RuntimeException(e);
-        }
-      }
-      Map<Integer, ProductResponse> productMap =
-          productList.stream().collect(Collectors.toMap(ProductResponse::getProductId,
-              product -> product, (existing, replacement) -> existing));
-
-      List<ProductResponse> matchingProducts = new ArrayList<>();
-
-      orderItems.forEach(orderItem -> {
-        ProductResponse product = productMap.get(orderItem.getProductId());
-        matchingProducts.add(product);
-      });
-
-      order.setProducts(matchingProducts);
-
-    }).sorted(Comparator.comparing(OrderResponseList::getOrderId)
-                        .reversed()).collect(Collectors.toList())))
-               .doFinally(mongoClient::close)
-               .subscribe(promise::complete, promise::fail);
-
-    return promise.future();
-  }
-
-  /**
    * Update order by orderId.
    *
    * @param mongoClient the MongoDB client
@@ -352,12 +338,9 @@ public class OrderDaoImpl implements OrderDao {
         .switchIfEmpty(Single.error(
             new NoSuchElementException("Order not found with orderId: " + orderId)))
         .flatMap(doc -> {
-          JsonObject updateFields =
-              new JsonObject().put(ORDER_STATS, OrderStatus.valueOf(orderStatus))
-                              .put(ORDER_UPDATED_AT, LocalDateTime.now()
-                                                                  .format(
-                                                                      DateTimeFormatter.ofPattern(
-                                                                          "dd/MM/yyyy hh:mm:ss a")));
+          JsonObject updateFields = new JsonObject()
+              .put(ORDER_STATS, OrderStatus.valueOf(orderStatus))
+              .put(ORDER_UPDATED_AT, LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")));
           JsonObject update = new JsonObject().put(SET, updateFields);
           return mongoClient.rxUpdateCollection(COLLECTION, query, update).toSingle();
         })
@@ -371,10 +354,10 @@ public class OrderDaoImpl implements OrderDao {
           response.setOrderId(updatedDoc.getString(ORDER_ID));
           response.setOrderStatus(OrderStatus.valueOf(updatedDoc.getString(ORDER_STATS)));
           promise.complete(response);
-        }, error -> {
-          LOG.error("Failed to update order: {}", error.getMessage());
-          promise.fail(error);
-        });
+          }, error -> {
+            LOG.error("Failed to update order: {}", error.getMessage());
+            promise.fail(error);
+          });
 
     return promise.future();
   }
@@ -386,39 +369,33 @@ public class OrderDaoImpl implements OrderDao {
     Promise<OrderResponse> promise = Promise.promise();
 
     JsonObject query = new JsonObject().put(ORDER_ID, orderId);
-    String finalStatus = paymentStatus.equalsIgnoreCase("SUCCESS") ? OrderStatus.CONFIRMED.name() :
-        OrderStatus.AWAITING_PAYMENT.name();
+    String finalStatus = paymentStatus.equalsIgnoreCase("SUCCESS")
+        ? OrderStatus.CONFIRMED.name() : OrderStatus.AWAITING_PAYMENT.name();
 
-    mongoClient.rxFindOne(COLLECTION, query, null)
-               .switchIfEmpty(Single.error(
-                   new NoSuchElementException("Order not found with orderId: " + orderId)))
-               .flatMap(doc -> {
-                 JsonObject updateFields = new JsonObject().put(ORDER_STATS, finalStatus)
-                                                           .put(ORDER_UPDATED_AT,
-                                                               LocalDateTime.now()
-                                                                            .format(
-                                                                                DateTimeFormatter.ofPattern(
-                                                                                    "dd/MM/yyyy " +
-                                                                                        "hh:mm:ss" +
-                                                                                        " a")))
-                                                           .put(PAYMENT_METHOD, paymentMethod);
-                 JsonObject update = new JsonObject().put(SET, updateFields);
-                 return mongoClient.updateCollection(COLLECTION, query, update).toSingle();
-               })
-               .flatMap(updateResult -> mongoClient.rxFindOne(COLLECTION, query, null)
-                                                   .switchIfEmpty(Single.error(
-                                                       new IllegalStateException(
-                                                           "Updated order with orderId: " +
-                                                               orderId + "not found"))))
-               .subscribe(updatedDoc -> {
-                 OrderResponse response = new OrderResponse();
-                 response.setOrderId(updatedDoc.getString(ORDER_ID));
-                 response.setOrderStatus(OrderStatus.valueOf(updatedDoc.getString(ORDER_STATS)));
-                 promise.complete(response);
-               }, error -> {
-                 LOG.error("Failed to update order: {}", error.getMessage());
-                 promise.fail(error);
-               });
+    mongoClient
+        .rxFindOne(COLLECTION, query, null)
+        .switchIfEmpty(Single.error(
+            new NoSuchElementException("Order not found with orderId: " + orderId)))
+        .flatMap(doc -> {
+          JsonObject updateFields = new JsonObject()
+              .put(ORDER_STATS, finalStatus)
+              .put(ORDER_UPDATED_AT, LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")))
+              .put(PAYMENT_METHOD, paymentMethod);
+          JsonObject update = new JsonObject().put(SET, updateFields);
+          return mongoClient.updateCollection(COLLECTION, query, update).toSingle();
+        })
+        .flatMap(updateResult -> mongoClient.rxFindOne(COLLECTION, query, null)
+                .switchIfEmpty(Single.error(
+                    new IllegalStateException("Updated order with orderId: " + orderId + "not found"))))
+        .subscribe(updatedDoc -> {
+          OrderResponse response = new OrderResponse();
+          response.setOrderId(updatedDoc.getString(ORDER_ID));
+          response.setOrderStatus(OrderStatus.valueOf(updatedDoc.getString(ORDER_STATS)));
+          promise.complete(response);
+        }, error -> {
+          LOG.error("Failed to update order: {}", error.getMessage());
+          promise.fail(error);
+        });
     return promise.future();
   }
 
@@ -433,75 +410,65 @@ public class OrderDaoImpl implements OrderDao {
     Promise<List<OrderItemRequest>> promise = Promise.promise();
     LOG.info("*** Calling product-service to validate the products ***");
 
-    WEB_CLIENT.put(PORT, PRODUCT_HOST, PRODUCT_ORDER_ENDPOINT)
-              .rxSendJson(orderItems)
-              .subscribe(ar -> {
-                if (ar.statusCode() == SUCCESS_STATUS_CODE) {
-                  promise.complete(orderItems);
-                } else {
-                  LOG.error("Some error occurred in product-service: {}", ar.bodyAsString());
-                  promise.fail(ar.bodyAsString());
-                }
-              }, throwable -> {
-                LOG.error("Request to product-service failed", throwable);
-                promise.fail(throwable);
-              });
+    WEB_CLIENT.put(PORT, PRODUCT_HOST, PRODUCT_ORDER_ENDPOINT).rxSendJson(orderItems).subscribe(ar -> {
+      if (ar.statusCode() == SUCCESS_STATUS_CODE) {
+        promise.complete(orderItems);
+      } else {
+        LOG.error("Some error occurred in product-service: {}", ar.bodyAsString());
+        promise.fail(ar.bodyAsString());
+      }
+    }, throwable -> {
+      LOG.error("Request to product-service failed", throwable);
+      promise.fail(throwable);
+    });
 
     return promise.future();
   }
 
-  private Future<PaymentResponse> processPayment(String orderId, PaymentRequest paymentRequest,
-                                                 String token) {
+  private Future<PaymentResponse> processPayment(String orderId, PaymentRequest paymentRequest, String token) {
 
     Promise<PaymentResponse> promise = Promise.promise();
     LOG.info("*** Calling payment-service to do the payment ***");
 
-    WEB_CLIENT.post(PORT, PAYMENT_HOST, PAYMENT_ORDER_ENDPOINT + orderId)
-              .putHeader(AUTH_HEADER, token)
-              .rxSendJson(paymentRequest)
-              .subscribe(ar -> {
-                if (ar.statusCode() == SUCCESS_STATUS_CODE) {
-                  PaymentResponse paymentResponse =
-                      ar.bodyAsJsonObject().mapTo(PaymentResponse.class);
-                  promise.complete(paymentResponse);
-                } else {
-                  LOG.error("Some error occurred in payment-service for orderId: {}", orderId);
-                  promise.fail(ar.bodyAsString());
-                }
-              }, throwable -> {
-                LOG.error("Request to payment-service failed", throwable);
-                promise.fail(throwable);
-              });
+    WEB_CLIENT.post(PORT, PAYMENT_HOST, PAYMENT_ORDER_ENDPOINT + orderId).putHeader(AUTH_HEADER, token)
+    .rxSendJson(paymentRequest).subscribe(ar -> {
+      if (ar.statusCode() == SUCCESS_STATUS_CODE) {
+        PaymentResponse paymentResponse = ar.bodyAsJsonObject().mapTo(PaymentResponse.class);
+        promise.complete(paymentResponse);
+      } else {
+        LOG.error("Some error occurred in payment-service for orderId: {}", orderId);
+        promise.fail(ar.bodyAsString());
+      }
+    }, throwable -> {
+      LOG.error("Request to payment-service failed", throwable);
+      promise.fail(throwable);
+    });
 
     return promise.future();
   }
 
   /**
    * Fetch latest payment status from payment DB
-   *
    * @param orderId - fetch payment status by orderId
-   * @param token   - JWT
+   * @param token - JWT
    * @return paymentResponse with updated status
    */
   private Future<String> fetchPaymentStatusFromDb(String orderId, String token) {
-
     Promise<String> promise = Promise.promise();
-    WEB_CLIENT.get(PORT, PAYMENT_HOST, PAYMENT_STATUS_ENDPOINT + orderId)
-              .putHeader(AUTH_HEADER, token)
-              .rxSend()
-              .subscribe(response -> {
-                if (response.statusCode() == SUCCESS_STATUS_CODE) {
-                  String status = response.bodyAsString();
-                  LOG.info("Received payment status: {}", status);
-                  promise.complete(status);
-                } else {
-                  LOG.error("Error from payment service: {}", response.bodyAsString());
-                  promise.fail("Failed to fetch status");
-                }
-              }, err -> {
-                LOG.error("Exception while fetching status", err);
-                promise.fail(err);
-              });
+    WEB_CLIENT.get(PORT, PAYMENT_HOST, PAYMENT_STATUS_ENDPOINT + orderId).putHeader(AUTH_HEADER, token)
+    .rxSend().subscribe(response -> {
+      if (response.statusCode() == SUCCESS_STATUS_CODE) {
+        String status = response.bodyAsString();
+        LOG.info("Received payment status: {}", status);
+        promise.complete(status);
+      } else {
+        LOG.error("Error from payment service: {}", response.bodyAsString());
+        promise.fail("Failed to fetch status");
+      }
+    }, err -> {
+      LOG.error("Exception while fetching status", err);
+      promise.fail(err);
+    });
     return promise.future();
   }
 
@@ -527,15 +494,13 @@ public class OrderDaoImpl implements OrderDao {
     List<Future<ProductResponse>> futures = new CopyOnWriteArrayList<>();
     productIds.forEach(productId -> {
       Future<ProductResponse> future = Future.future(promiseHandler -> {
-        WEB_CLIENT.get(PORT, PRODUCT_HOST, PRODUCT_BY_ID_ENDPOINT + productId)
-                  .rxSend()
-                  .subscribe(res -> {
-                    if (res.statusCode() == SUCCESS_STATUS_CODE) {
-                      promiseHandler.complete(res.bodyAsJsonObject().mapTo(ProductResponse.class));
-                    } else {
-                      promiseHandler.fail("Failed to fetch product with id: " + productId);
-                    }
-                  }, error -> promiseHandler.fail(error.getMessage()));
+        WEB_CLIENT.get(PORT, PRODUCT_HOST, PRODUCT_BY_ID_ENDPOINT + productId).rxSend().subscribe(res -> {
+          if (res.statusCode() == SUCCESS_STATUS_CODE) {
+            promiseHandler.complete(res.bodyAsJsonObject().mapTo(ProductResponse.class));
+          } else {
+            promiseHandler.fail("Failed to fetch product with id: " + productId);
+          }
+        }, error -> promiseHandler.fail(error.getMessage()));
       });
       futures.add(future);
     });
@@ -544,5 +509,20 @@ public class OrderDaoImpl implements OrderDao {
       promise.complete(productResponses);
     }).onFailure(promise::fail);
     return promise.future();
+  }
+
+  /**
+   * This is a helper method to convert Vert.x Future to Single
+   */
+  public static <T> Single<T> toSingle(io.vertx.core.Future<T> future) {
+    return Single.create(emitter ->
+        future.onComplete(ar -> {
+          if (ar.succeeded()) {
+            emitter.onSuccess(ar.result());
+          } else {
+            emitter.onError(ar.cause());
+          }
+        })
+    );
   }
 }
