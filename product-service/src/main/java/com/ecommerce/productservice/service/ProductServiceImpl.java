@@ -17,10 +17,11 @@ import com.ecommerce.productservice.repository.ProductRepository;
 import com.ecommerce.productservice.util.MongoSequenceGenerator;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -107,6 +108,17 @@ public class ProductServiceImpl implements ProductService {
         product.setProductBrand(product.getProductBrand());
         product.setUsername(username);
         product.setInStock(product.isInStock());
+
+        if (product.getProductSizes() != null) {
+          product
+              .getProductSizes()
+              .forEach(
+                  size -> {
+                    if (size.getReservedQuantity() == null) {
+                      size.setReservedQuantity(0);
+                    }
+                  });
+        }
         // save the product to the database
         Product productToSaveInDB = productRepository.save(product);
         this.redisTemplate
@@ -285,95 +297,69 @@ public class ProductServiceImpl implements ProductService {
   @Caching(evict = {@CacheEvict(value = CACHE_NAME, key = "#productId", allEntries = true)})
   public void reduceProductCount(List<OrderProductDTO> products) {
 
-    List<Product> productList =
-        products.stream()
-            .map(p -> this.getProductById(p.getProductId()))
-            .map(productInDB -> this.modelMapper.map(productInDB, Product.class))
-            .toList();
+    Map<String, OrderProductDTO> uniqueMap = new HashMap<>();
+    for (OrderProductDTO item : products) {
+      String key = item.getProductId() + "-" + item.getProductSize();
+      uniqueMap.merge(
+          key,
+          item,
+          (existing, dup) -> {
+            existing.setQuantity(existing.getQuantity() + dup.getQuantity());
+            return existing;
+          });
+    }
+    List<OrderProductDTO> deduplicatedList = new ArrayList<>(uniqueMap.values());
 
-    List<List<Size>> listOfSize = new ArrayList<>();
-
-    // Create a map of product IDs with its corresponding sizes
-    Map<Integer, List<Size>> productSizeMap =
-        productList.stream()
+    Map<Integer, Product> productMap =
+        deduplicatedList.stream()
+            .map(
+                item -> {
+                  ProductResponseDTO dto = getProductById(item.getProductId());
+                  return modelMapper.map(dto, Product.class);
+                })
             .collect(
                 Collectors.toMap(
-                    Product::getProductId,
-                    product ->
-                        product.getProductSizes().stream()
-                            .filter(size -> size.getQuantity() > 0)
-                            .toList()));
+                    Product::getProductId, Function.identity(), (existing, duplicate) -> existing));
 
-    // Iterate over the products and collect matching sizes
-    products.forEach(
-        actualProduct -> {
-          List<Size> sizes = productSizeMap.get(actualProduct.getProductId());
-          if (sizes != null) {
-            List<Size> filteredSizes =
-                sizes.stream()
-                    .filter(size -> size.getName().equals(actualProduct.getProductSize()))
-                    .toList();
-            listOfSize.add(filteredSizes);
-          }
-        });
+    for (OrderProductDTO prod : deduplicatedList) {
+      Product product = productMap.get(prod.getProductId());
 
-    if (listOfSize.size() == products.size()) {
+      // Find matching size
+      Size matchedSize =
+          product.getProductSizes().stream()
+              .filter(size -> size.getName().equals(prod.getProductSize()))
+              .findFirst()
+              .orElseThrow(
+                  () ->
+                      new RuntimeException(
+                          "❌ Size not found for product ID: " + prod.getProductId()));
 
-      products.forEach(
-          prod -> {
-            // Retrieve the product from the database
-            ProductResponseDTO productInDB = this.getProductById(prod.getProductId());
-            Product product = this.modelMapper.map(productInDB, Product.class);
-            // Check if the provided quantity is less than the existing product count
-            if (product.getProductCount() > 0 && product.getProductCount() < prod.getQuantity()) {
-              throw new RuntimeException(
-                  "Provided product quantity shouldn't be greater than existing product count");
-            }
-            // Update the product quantity
-            AtomicInteger updatedProductQuantity = new AtomicInteger();
-            product.getProductSizes().stream()
-                .filter(size -> size.getName().equals(prod.getProductSize()))
-                .peek(size -> size.setQuantity(size.getQuantity() - prod.getQuantity()))
-                .forEach(s -> updatedProductQuantity.set(s.getQuantity()));
-            if (updatedProductQuantity.intValue() < 0) {
-              LOGGER.error(
-                  "Product with id: {} and size: {} is out of stock!",
-                  prod.getProductId(),
-                  prod.getProductSize());
-              throw new RuntimeException(
-                  "Product of size: " + prod.getProductSize() + " is out of stock!");
-            }
-            // Update the total product count
-            Integer totalProducts =
-                Math.toIntExact(
-                    product.getProductSizes().stream()
-                        .map(Size::getQuantity)
-                        .collect(Collectors.summarizingInt(Integer::intValue))
-                        .getSum());
-            product.setProductCount(totalProducts);
-            // Update the product count in the database
-            Query query1 = new Query();
-            query1.addCriteria(where("_id").is(prod.getProductId()));
-            this.mongoTemplate.findAndModify(
-                query1, Update.update("product_count", product.getProductCount()), Product.class);
-            // Update the quantity of the specified productSize in the database
-            Query query2 = new Query();
-            query2.addCriteria(
-                where("_id")
-                    .is(prod.getProductId())
-                    .and("product_sizes.name")
-                    .is(prod.getProductSize()));
-            Update updateDefinition =
-                new Update().set("product_sizes.$.quantity", updatedProductQuantity.intValue());
-            this.mongoTemplate.findAndModify(query2, updateDefinition, Product.class);
-            // Log a message indicating that the product quantity was updated successfully
-            LOGGER.info(
-                "***** Product with Id: {} and quantity: {} updated successfully *****",
-                prod.getProductId(),
-                prod.getQuantity());
-          });
-    } else {
-      throw new RuntimeException("Some products not in stock, unable to place your order!");
+      int available = matchedSize.getQuantity() - matchedSize.getReservedQuantity();
+      if (available < prod.getQuantity()) {
+        LOGGER.error(
+            "Product ID: {}, size: {} is out of stock!",
+            prod.getProductId(),
+            prod.getProductSize());
+        throw new RuntimeException("Insufficient stock for size: " + prod.getProductSize());
+      }
+
+      // Update reserved quantity safely
+      Query reserveQuery =
+          new Query(
+              Criteria.where("_id")
+                  .is(prod.getProductId())
+                  .and("product_sizes.name")
+                  .is(prod.getProductSize()));
+      Update reserveUpdate =
+          new Update().inc("product_sizes.$.reservedQuantity", prod.getQuantity());
+
+      mongoTemplate.findAndModify(reserveQuery, reserveUpdate, Product.class);
+
+      LOGGER.info(
+          "✅ Reserved Product ID: {}, Size: {}, Quantity: {}",
+          prod.getProductId(),
+          prod.getProductSize(),
+          prod.getQuantity());
     }
   }
 
@@ -476,5 +462,113 @@ public class ProductServiceImpl implements ProductService {
       }
     }
     return new PageImpl<>(page.getContent(), pageable, page.getTotalElements());
+  }
+
+  public void releaseReservedProductCount(List<OrderProductDTO> products) {
+
+    products.forEach(
+        prod -> {
+          ProductResponseDTO productInDB = this.getProductById(prod.getProductId());
+          Product product = this.modelMapper.map(productInDB, Product.class);
+
+          Size matchedSize =
+              product.getProductSizes().stream()
+                  .filter(size -> size.getName().equals(prod.getProductSize()))
+                  .findFirst()
+                  .orElseThrow(
+                      () ->
+                          new RuntimeException(
+                              "Size not found for product: " + prod.getProductId()));
+
+          if (matchedSize.getReservedQuantity() < prod.getQuantity()) {
+            LOGGER.warn(
+                "⚠️ Trying to release more than reserved for product: {}, size: {}",
+                prod.getProductId(),
+                prod.getProductSize());
+            return;
+          }
+
+          Query query = new Query();
+          query.addCriteria(
+              where("_id")
+                  .is(prod.getProductId())
+                  .and("product_sizes.name")
+                  .is(prod.getProductSize()));
+
+          Update update = new Update().inc("product_sizes.$.reservedQuantity", -prod.getQuantity());
+
+          this.mongoTemplate.findAndModify(query, update, Product.class);
+
+          LOGGER.info(
+              "↩️ Released reserved product Id: {}, size: {}, quantity: {}",
+              prod.getProductId(),
+              prod.getProductSize(),
+              prod.getQuantity());
+        });
+  }
+
+  @Override
+  public void confirmProductCount(List<OrderProductDTO> products) {
+
+    Map<String, OrderProductDTO> mergedProducts = new HashMap<>();
+    for (OrderProductDTO prod : products) {
+      String key = prod.getProductId() + "-" + prod.getProductSize();
+      mergedProducts.merge(
+          key,
+          prod,
+          (existing, dup) -> {
+            existing.setQuantity(existing.getQuantity() + dup.getQuantity());
+            return existing;
+          });
+    }
+    List<OrderProductDTO> deduplicatedList = new ArrayList<>(mergedProducts.values());
+
+    for (OrderProductDTO prod : deduplicatedList) {
+
+      ProductResponseDTO productDTO = getProductById(prod.getProductId());
+      Product product = modelMapper.map(productDTO, Product.class);
+
+      Size matchedSize =
+          product.getProductSizes().stream()
+              .filter(size -> size.getName().equals(prod.getProductSize()))
+              .findFirst()
+              .orElseThrow(
+                  () ->
+                      new RuntimeException(
+                          "❌ Size not found for product ID: " + prod.getProductId()));
+
+      if (matchedSize.getReservedQuantity() < prod.getQuantity()) {
+        throw new RuntimeException(
+            "Cannot confirm more than reserved for product: " + prod.getProductId());
+      }
+
+      Query stockUpdateQuery =
+          new Query(
+              where("_id")
+                  .is(prod.getProductId())
+                  .and("product_sizes.name")
+                  .is(prod.getProductSize()));
+
+      Update stockUpdate =
+          new Update()
+              .inc("product_sizes.$.quantity", -prod.getQuantity())
+              .inc("product_sizes.$.reservedQuantity", -prod.getQuantity());
+
+      mongoTemplate.findAndModify(stockUpdateQuery, stockUpdate, Product.class);
+
+      Product updatedProduct = modelMapper.map(getProductById(prod.getProductId()), Product.class);
+
+      int totalCount = updatedProduct.getProductSizes().stream().mapToInt(Size::getQuantity).sum();
+
+      Query countUpdateQuery = new Query(where("_id").is(prod.getProductId()));
+      Update countUpdate = new Update().set("product_count", totalCount);
+      mongoTemplate.findAndModify(countUpdateQuery, countUpdate, Product.class);
+
+      LOGGER.info(
+          "✅ Confirmed stock - Product ID: {}, Size: {}, Quantity: {}",
+          prod.getProductId(),
+          prod.getProductSize(),
+          prod.getQuantity());
+    }
   }
 }

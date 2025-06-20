@@ -31,4 +31,7 @@ public class Size implements Serializable {
   @NotNull
   @Schema(example = "5", description = "The number of products with this size")
   private Integer quantity;
+
+  @Schema(example = "2", description = "The number of reserved (but unpaid) items")
+  private Integer reservedQuantity;
 }

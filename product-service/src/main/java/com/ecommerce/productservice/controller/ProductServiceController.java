@@ -325,6 +325,30 @@ public class ProductServiceController {
   }
 
   /**
+   * This gets called when payment fails
+   *
+   * @param products
+   * @return
+   */
+  @PostMapping("/v1/reserved-stocks/release")
+  public ResponseEntity<Void> releaseReservedStock(@RequestBody List<OrderProductDTO> products) {
+    this.productService.releaseReservedProductCount(products);
+    return ResponseEntity.ok().build();
+  }
+
+  /**
+   * This gets called when payment is success
+   *
+   * @param products
+   * @return
+   */
+  @PostMapping("/v1/confirm-stocks/count")
+  public ResponseEntity<Void> confirmProductCount(@RequestBody List<OrderProductDTO> products) {
+    this.productService.confirmProductCount(products);
+    return ResponseEntity.ok().build();
+  }
+
+  /**
    * This API is used to download products data in an Excel file
    *
    * @param response to set content type and headed value

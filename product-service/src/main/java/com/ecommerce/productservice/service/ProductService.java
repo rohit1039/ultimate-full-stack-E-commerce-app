@@ -17,8 +17,7 @@ public interface ProductService {
   Page<ProductResponseDTO> findProductsByCategory(
       Integer categoryId, int pageNumber, int pageSize, String searchKey, String role);
 
-  Page<ProductResponseDTO> getAllProducts(
-      int pageNumber, int pageSize, String searchKey);
+  Page<ProductResponseDTO> getAllProducts(int pageNumber, int pageSize, String searchKey);
 
   ProductResponseDTO updateProductById(
       Integer productId, ProductRequestDTO productRequestDTO, String username, String role)
@@ -27,6 +26,10 @@ public interface ProductService {
   void deleteProductById(Integer productId, String role) throws Exception;
 
   void reduceProductCount(List<OrderProductDTO> products);
+
+  void releaseReservedProductCount(List<OrderProductDTO> products);
+
+  void confirmProductCount(List<OrderProductDTO> products);
 
   List<ProductResponseDTO> findProductsToExport();
 }
