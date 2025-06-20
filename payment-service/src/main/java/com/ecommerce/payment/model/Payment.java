@@ -7,6 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Payment {
+public class Payment implements Serializable {
+
   @Id private String paymentId;
   private String orderId;
 
@@ -26,5 +28,5 @@ public class Payment {
   @Enumerated(EnumType.STRING)
   private PaymentMethod paymentMethod;
 
-  private Long totalAmount;
+  private Float totalAmount;
 }

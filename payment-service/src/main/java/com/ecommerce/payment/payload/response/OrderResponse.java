@@ -1,8 +1,7 @@
-package com.ecommerce.orderservice.payload.response;
+package com.ecommerce.payment.payload.response;
 
-import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
-import com.ecommerce.orderservice.payload.request.order.OrderStatus;
-import com.ecommerce.orderservice.payload.request.payment.PaymentStatus;
+import com.ecommerce.payment.payload.request.OrderItemRequest;
+import com.ecommerce.payment.payload.request.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -25,12 +24,11 @@ public class OrderResponse {
 
   private String orderId;
   private Long totalQuantity;
-  private Float totalAmount;
+  private Long totalAmount;
   private List<OrderItemRequest> orderItems;
   private String username;
   private Integer productId;
   private PaymentStatus paymentStatus;
-  private OrderStatus orderStatus;
   private LocalDateTime orderDate;
   private LocalDateTime cancelDate;
 }

@@ -20,6 +20,8 @@ public class ApiConstants {
   public static final String GET_ORDERS_BY_USER_ENDPOINT = "/orders/get-orders";
   public static final String UPDATE_ORDER_STATS_ENDPOINT = "/orders"; // only by admins
   public static final String UPDATE_ORDER_PAYMENT_STATS_ENDPOINT = "/orders/update-status"; // only by admins
+  public static final String PRODUCT_SERVICE_PAYMENT_FAILURE_URL = "http://localhost:8081/products/v1/reserved-stocks/release";
+  public static final String PRODUCT_SERVICE_PAYMENT_SUCCESS_URL = "http://localhost:8081/products/v1/confirm-stocks/count";
   public static final String STATUS = "status";
   public static final String ID = "id";
   public static final String SET = "$set";

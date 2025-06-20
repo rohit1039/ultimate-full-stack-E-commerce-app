@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.SingleHelper;
@@ -76,97 +77,89 @@ public class OrderDaoImpl implements OrderDao {
 
     List<OrderItemRequest> orderItems = orderRequest.getOrderItems();
 
-    return SingleHelper.toFuture(toSingle(validateProducts(orderItems))
-        .flatMap(validatedProducts -> {
-          List<Integer> productIds =
-              orderItems.stream()
-                        .map(OrderItemRequest::getProductId)
-                        .collect(Collectors.toList());
+    return SingleHelper.toFuture(toSingle(validateProducts(orderItems)).flatMap(validatedProducts -> {
+      List<Integer> productIds =
+          orderItems.stream().map(OrderItemRequest::getProductId).collect(Collectors.toList());
 
-          return Single.create(emitter ->
-              findProductById(productIds)
-                  .onSuccess(emitter::onSuccess)
-                  .onFailure(emitter::onError)
-          );
-        })
-        .flatMap(productResponses -> {
-          List<ProductResponse> productList = objectMapper.convertValue(
-              productResponses, new TypeReference<List<ProductResponse>>() {}
-          );
+      return Single.create(emitter ->
+          findProductById(productIds)
+              .onSuccess(emitter::onSuccess)
+              .onFailure(emitter::onError));
 
-          long totalQuantity = orderItems.stream()
-                                         .mapToLong(OrderItemRequest::getQuantity)
-                                         .sum();
+    }).flatMap(productResponses -> {
 
-          float unitAmount =
-              (float) productList.stream()
-                                 .collect(Collectors.summarizingDouble(ProductResponse::getTotalPrice))
-                                 .getSum();
+      List<ProductResponse> productList =
+          objectMapper.convertValue(productResponses, new TypeReference<List<ProductResponse>>() {});
 
-          float totalAmount = unitAmount * totalQuantity;
+      Map<Integer, Float> productPriceMap =
+          productList.stream()
+                     .collect(Collectors.toMap(ProductResponse::getProductId, ProductResponse::getTotalPrice,
+                         (existing, duplicate) -> existing));
 
-          JsonObject orderJson;
-          try {
-            orderRequest.setTotalAmount(totalAmount);
-            orderJson = OrderRequest.toJson(orderRequest);
-          } catch (JsonProcessingException e) {
-            LOG.error("JSON processing failed: {}", e.getMessage());
-            return Single.error(new RuntimeException("Failed to process order data"));
-          }
+      AtomicReference<Float> totalAmountRef = new AtomicReference<>(0f);
+      for (OrderItemRequest item : orderItems) {
+        float price = productPriceMap.getOrDefault(item.getProductId(), 0f);
+        totalAmountRef.set(totalAmountRef.get() + (price * item.getQuantity()));
+      }
 
-          return mongoClient.rxSave(COLLECTION, orderJson)
+      JsonObject orderJson;
+      try {
+        orderRequest.setTotalAmount(totalAmountRef.get());
+        orderJson = OrderRequest.toJson(orderRequest);
+      } catch (JsonProcessingException e) {
+        LOG.error("JSON processing failed: {}", e.getMessage());
+        return Single.error(new RuntimeException("Failed to process order data"));
+      }
+
+      return mongoClient.rxSave(COLLECTION, orderJson)
            .switchIfEmpty(Single.error(new IllegalStateException("Failed to save order")))
            .flatMap(orderId -> {
              LOG.info("processPayment called with orderId :: " + orderId);
 
              PaymentRequest paymentRequest = new PaymentRequest();
              paymentRequest.setPaymentDate(LocalDateTime.now());
-             paymentRequest.setTotalAmount(totalAmount);
+             paymentRequest.setTotalAmount(totalAmountRef.get());
 
-             return Single.<PaymentResponse>create(emitter ->
-                 processPayment(orderId, paymentRequest, token).onComplete(ar -> {
-                   if (ar.succeeded()) {
-                     emitter.onSuccess(ar.result());
-                   } else {
-                     emitter.onError(ar.cause());
-                   }
-                 })
-             ).flatMap(paymentResponse -> Single.create(emitter -> fetchPaymentStatusFromDb(orderId, token)
-                 .onComplete(ar -> {
-                   if (ar.succeeded()) {
-                     emitter.onSuccess(ar.result());
-                   } else {
-                     emitter.onError(ar.cause());
-                   }
-                 })).map(latestPayment -> new Object[] { orderId, latestPayment, totalAmount }));
+             return Single.<PaymentResponse>create(
+                  emitter -> processPayment(orderId, paymentRequest, token).onComplete(ar -> {
+                    if (ar.succeeded()) {
+                      emitter.onSuccess(ar.result());
+                    } else {
+                      emitter.onError(ar.cause());
+                    }
+                  })).flatMap(paymentResponse -> Single.create(
+                      emitter -> fetchPaymentStatusFromDb(orderId, token).onComplete(ar -> {
+                        if (ar.succeeded()) {
+                          emitter.onSuccess(ar.result());
+                        } else {
+                          emitter.onError(ar.cause());
+                        }
+                      })
+             ).map(latestPayment -> new Object[] { orderId, latestPayment, totalAmountRef.get() }));
            });
-        })
-        .flatMap(arr -> {
-          String orderId = (String) arr[0];
-          String paymentStatus = (String) arr[1];
-          float totalAmount = (Float) arr[2];
+    }).flatMap(arr -> {
 
-          String newStatus = PaymentStatus.SUCCESS.name().equalsIgnoreCase(paymentStatus)
-              ? OrderStatus.CONFIRMED.name()
-              : OrderStatus.AWAITING_PAYMENT.name();
+      String orderId = (String) arr[0];
+      String paymentStatus = (String) arr[1];
+      float totalAmount = (Float) arr[2];
 
-          JsonObject update = new JsonObject().put(SET, new JsonObject().put(ORDER_STATS, newStatus));
-          JsonObject query = new JsonObject().put(ORDER_ID, orderId);
+      String newStatus = PaymentStatus.SUCCESS.name().equalsIgnoreCase(paymentStatus)
+          ? OrderStatus.CONFIRMED.name() : OrderStatus.AWAITING_PAYMENT.name();
 
-          return mongoClient.rxUpdateCollection(COLLECTION, query, update)
-         .switchIfEmpty(Single.error(new IllegalStateException("Failed to update order status")))
-         .flatMap(updated ->
-             mongoClient.rxFindOne(COLLECTION, new JsonObject().put(ORDER_ID, orderId), null).toSingle()
-         )
-         .map(orderDoc -> {
-           OrderResponse response = new OrderResponse();
-           response.setOrderId(orderDoc.getString(ORDER_ID));
-           response.setOrderStatus(OrderStatus.valueOf(orderDoc.getString(ORDER_STATS)));
-           response.setTotalAmount((long) totalAmount);
-           return response;
-         });
-        })
-    );
+      JsonObject update = new JsonObject().put(SET, new JsonObject().put(ORDER_STATS, newStatus));
+      JsonObject query = new JsonObject().put(ORDER_ID, orderId);
+
+      return mongoClient.rxUpdateCollection(COLLECTION, query, update)
+             .switchIfEmpty(Single.error(new IllegalStateException("Failed to update order status")))
+             .flatMap(updated -> mongoClient.rxFindOne(COLLECTION, query, null).toSingle())
+             .map(orderDoc -> {
+               OrderResponse response = new OrderResponse();
+               response.setOrderId(orderDoc.getString(ORDER_ID));
+               response.setOrderStatus(OrderStatus.valueOf(orderDoc.getString(ORDER_STATS)));
+               response.setTotalAmount(totalAmount);
+               return response;
+             });
+    }));
   }
 
   /**
@@ -269,11 +262,11 @@ public class OrderDaoImpl implements OrderDao {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a");
         LocalDateTime orderDate = LocalDateTime.parse(orderRes.getString(ORDER_PLACED_AT), formatter);
         return OrderResponseList.builder()
-                           .orderId(orderRes.getString(ORDER_ID))
-                           .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
-                           .username(orderRes.getString(ORDER_PLACED_BY))
-                           .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
-                           .orderDate(orderDate).build();
+               .orderId(orderRes.getString(ORDER_ID))
+               .orderStatus(OrderStatus.valueOf(orderRes.getString(ORDER_STATS)))
+               .username(orderRes.getString(ORDER_PLACED_BY))
+               .orderItems(orderRes.getJsonArray(ORDER_ITEMS))
+               .orderDate(orderDate).build();
       }).collect(Collectors.toList()));
 
       return Single.create(emitter ->
@@ -346,9 +339,9 @@ public class OrderDaoImpl implements OrderDao {
         })
         .flatMap(updateResult ->
             mongoClient.rxFindOne(COLLECTION, query, null)
-                       .switchIfEmpty(Single.error(
-                           new IllegalStateException("Updated order with orderId: "
-                               + orderId + "not found"))))
+            .switchIfEmpty(Single.error(
+                new IllegalStateException("Updated order with orderId: "
+                    + orderId + "not found"))))
         .subscribe(updatedDoc -> {
           OrderResponse response = new OrderResponse();
           response.setOrderId(updatedDoc.getString(ORDER_ID));
@@ -369,13 +362,14 @@ public class OrderDaoImpl implements OrderDao {
     Promise<OrderResponse> promise = Promise.promise();
 
     JsonObject query = new JsonObject().put(ORDER_ID, orderId);
-    String finalStatus = paymentStatus.equalsIgnoreCase("SUCCESS")
-        ? OrderStatus.CONFIRMED.name() : OrderStatus.AWAITING_PAYMENT.name();
+
+    String finalStatus = PaymentStatus.SUCCESS.name().equalsIgnoreCase(paymentStatus)
+        ? OrderStatus.CONFIRMED.name() : OrderStatus.PAYMENT_FAILED.name();
 
     mongoClient
         .rxFindOne(COLLECTION, query, null)
         .switchIfEmpty(Single.error(
-            new NoSuchElementException("Order not found with orderId: " + orderId)))
+          new NoSuchElementException("Order not found with orderId: " + orderId)))
         .flatMap(doc -> {
           JsonObject updateFields = new JsonObject()
               .put(ORDER_STATS, finalStatus)
@@ -385,17 +379,23 @@ public class OrderDaoImpl implements OrderDao {
           return mongoClient.updateCollection(COLLECTION, query, update).toSingle();
         })
         .flatMap(updateResult -> mongoClient.rxFindOne(COLLECTION, query, null)
-                .switchIfEmpty(Single.error(
-                    new IllegalStateException("Updated order with orderId: " + orderId + "not found"))))
+              .switchIfEmpty(Single.error(
+                  new IllegalStateException("Updated order with orderId: " + orderId + "not found"))))
         .subscribe(updatedDoc -> {
+          JsonArray itemArray = updatedDoc.getJsonArray("order_items", new JsonArray());
+          List<OrderItemRequest> items =
+              itemArray.stream()
+                       .map(obj -> Json.decodeValue(obj.toString(), OrderItemRequest.class))
+                       .collect(Collectors.toList());
           OrderResponse response = new OrderResponse();
           response.setOrderId(updatedDoc.getString(ORDER_ID));
           response.setOrderStatus(OrderStatus.valueOf(updatedDoc.getString(ORDER_STATS)));
+          response.setOrderItems(items);
           promise.complete(response);
-        }, error -> {
-          LOG.error("Failed to update order: {}", error.getMessage());
-          promise.fail(error);
-        });
+          }, error -> {
+            LOG.error("Failed to update order: {}", error.getMessage());
+            promise.fail(error);
+          });
     return promise.future();
   }
 
@@ -514,7 +514,7 @@ public class OrderDaoImpl implements OrderDao {
   /**
    * This is a helper method to convert Vert.x Future to Single
    */
-  public static <T> Single<T> toSingle(io.vertx.core.Future<T> future) {
+  public static <T> Single<T> toSingle(Future<T> future) {
     return Single.create(emitter ->
         future.onComplete(ar -> {
           if (ar.succeeded()) {

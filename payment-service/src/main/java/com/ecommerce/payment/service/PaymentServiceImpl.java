@@ -51,7 +51,8 @@ public class PaymentServiceImpl implements PaymentService {
     orderRequest.put("notify", notify);
 
     orderRequest.put(
-        "callback_url", "https://yourdomain.com/payment/status"); // fallback (optional)
+        "callback_url",
+        "https://e424-2401-4900-7012-ffbf-adb8-8a9b-9f96-7c9f.ngrok-free.app/payments/status"); // fallback (optional)
 
     PaymentLink paymentLink = razorpayClient.paymentLink.create(orderRequest);
 
