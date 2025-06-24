@@ -23,7 +23,6 @@ import lombok.ToString;
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class AddressRequest {
 
-  private String addressId;
   @NotNull
   private String firstName;
   @NotNull
@@ -34,12 +33,13 @@ public class AddressRequest {
   private String addressLine2;
   @NotNull
   private String cityName;
+  private String district;
   @NotNull
   private String stateName;
   @NotNull
   private Long postalCode;
   @NotNull
-  private Long phoneNumber;
+  private String phoneNumber;
   private String username;
 
   @JsonInclude(value = JsonInclude.Include.NON_NULL)

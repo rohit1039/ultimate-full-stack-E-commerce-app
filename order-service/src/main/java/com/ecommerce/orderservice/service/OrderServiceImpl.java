@@ -1,5 +1,6 @@
 package com.ecommerce.orderservice.service;
 
+import static com.ecommerce.orderservice.constant.ApiConstants.ADDRESS;
 import static com.ecommerce.orderservice.constant.ApiConstants.AUTH_HEADER;
 import static com.ecommerce.orderservice.constant.ApiConstants.BAD_REQUEST_STATUS_CODE;
 import static com.ecommerce.orderservice.constant.ApiConstants.CREATED_STATUS_CODE;
@@ -8,9 +9,11 @@ import static com.ecommerce.orderservice.constant.ApiConstants.ORDER_ITEMS;
 import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CODE;
 import static com.ecommerce.orderservice.payload.request.order.OrderStatus.PENDING;
 
+import com.ecommerce.orderservice.config.AddressSeedLoader;
 import com.ecommerce.orderservice.dao.OrderDao;
 import com.ecommerce.orderservice.dao.OrderDaoImpl;
 import com.ecommerce.orderservice.exception.ApiErrorResponse;
+import com.ecommerce.orderservice.payload.request.address.AddressRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderStatus;
@@ -95,8 +98,12 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public void saveOrder(MongoClient mongoClient, JsonObject requestBody, String username,
+  public void saveOrder(MongoClient mongoClient, JsonObject requestBody, String username, String contactNumber,
                         List<ApiErrorResponse> errorResponses, RoutingContext routingContext) {
+
+    new AddressSeedLoader().run();
+
+    JsonObject address = requestBody.getJsonObject(ADDRESS);
 
     if (validateSaveOrderRequest(requestBody, errorResponses)) {
       responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE,
@@ -111,7 +118,7 @@ public class OrderServiceImpl implements OrderService {
       return;
     }
 
-    createAndSaveOrder(mongoClient, username, orderItems, routingContext);
+    createAndSaveOrder(mongoClient, address, username, contactNumber, orderItems, routingContext);
   }
 
   private boolean validateSaveOrderRequest(JsonObject requestBody,
@@ -123,12 +130,16 @@ public class OrderServiceImpl implements OrderService {
       return true;
     }
     JsonArray orderItems = requestBody.getJsonArray(ORDER_ITEMS);
+    JsonObject address = requestBody.getJsonObject(ADDRESS);
+    AddressRequest addressRequest = address.mapTo(AddressRequest.class);
+
     if (orderItems.isEmpty()) {
       errorResponses.add(
           new ApiErrorResponse("Unable to place order", "order_items array should not be empty"));
       return true;
     }
-    return false;
+
+    return validateAddress(addressRequest, errorResponses);
   }
 
   private List<OrderItemRequest> extractOrderItems(JsonObject requestBody,
@@ -138,6 +149,40 @@ public class OrderServiceImpl implements OrderService {
     return orderItems.stream()
                      .map(order -> new JsonObject(order.toString()).mapTo(OrderItemRequest.class))
                      .collect(Collectors.toList());
+  }
+
+  private boolean validateAddress(AddressRequest address, List<ApiErrorResponse> errorResponses) {
+
+    if (address == null) {
+      errorResponses.add(new ApiErrorResponse("Invalid address", "Address object is required"));
+      return true;
+    }
+    Long pincode = address.getPostalCode();
+    String city = address.getCityName();
+    String district = address.getDistrict();
+
+    if (pincode == null) {
+      errorResponses.add(new ApiErrorResponse("Invalid address", "pinCode is required"));
+      return true;
+    }
+    if (city == null || city.isBlank()) {
+      errorResponses.add(new ApiErrorResponse("Invalid address", "city is required"));
+      return true;
+    }
+    if (district == null || district.isBlank()) {
+      errorResponses.add(new ApiErrorResponse("Invalid address", "district is required"));
+      return true;
+    }
+    String state = address.getStateName();
+    if (state == null || state.isBlank()) {
+      errorResponses.add(new ApiErrorResponse("Invalid address", "state is required"));
+      return true;
+    }
+    if (!pincode.toString().matches("\\d{6}")) {
+      errorResponses.add(new ApiErrorResponse("Invalid address", "pinCode must be a 6-digit number"));
+      return true;
+    }
+    return false;
   }
 
   private boolean validateOrderItems(List<OrderItemRequest> orderItems,
@@ -163,7 +208,7 @@ public class OrderServiceImpl implements OrderService {
     return !errorResponses.isEmpty();
   }
 
-  private void createAndSaveOrder(MongoClient mongoClient, String username,
+  private void createAndSaveOrder(MongoClient mongoClient, JsonObject address, String username, String contactNumber,
                                   List<OrderItemRequest> orderItems,
                                   RoutingContext routingContext) {
 
@@ -173,16 +218,15 @@ public class OrderServiceImpl implements OrderService {
     orderRequest.setOrderPlacedAt(LocalDateTime.now());
     orderRequest.setOrderUpdatedAt(LocalDateTime.now());
     orderRequest.setOrderPlacedBy(username);
+    orderRequest.setAddress(address.mapTo(AddressRequest.class));
 
     String token = routingContext.request().getHeader(AUTH_HEADER);
-
     Optional.ofNullable(username).ifPresentOrElse(user -> {
-      Future<OrderResponse> orderInDb = orderDao.saveOrder(mongoClient, orderRequest, token);
+      Future<OrderResponse> orderInDb = orderDao.saveOrder(mongoClient, orderRequest, username, contactNumber, token);
       orderInDb.onSuccess(res -> {
-                 LOG.info("Order placed successfully with Id: {}", res.getOrderId());
-                 responseBuilder.handleSuccessResponse(routingContext, CREATED_STATUS_CODE, res);
-               })
-               .onFailure(throwable -> handleFailureResponse(routingContext, throwable,
+        LOG.info("Order placed successfully with Id: {}", res.getOrderId());
+        responseBuilder.handleSuccessResponse(routingContext, CREATED_STATUS_CODE, res);
+      }).onFailure(throwable -> handleFailureResponse(routingContext, throwable,
                    "Some error occurred while placing the order"));
     }, () -> responseBuilder.handleFailureResponse(routingContext, BAD_REQUEST_STATUS_CODE, List.of(
         new ApiErrorResponse("No username provided in request header",

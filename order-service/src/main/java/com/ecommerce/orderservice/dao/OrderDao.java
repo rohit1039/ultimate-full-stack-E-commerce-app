@@ -9,7 +9,8 @@ import java.util.List;
 
 public interface OrderDao {
 
-  Future<OrderResponse> saveOrder(MongoClient mongoClient, OrderRequest orderRequest, String token);
+  Future<OrderResponse> saveOrder(MongoClient mongoClient, OrderRequest orderRequest,
+                                  String username, String contactNumber, String token);
 
   Future<OrderResponse> updateOrder(MongoClient mongoClient, String orderId, String orderStatus);
 

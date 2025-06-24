@@ -20,6 +20,7 @@ import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_ORDER_END
 import static com.ecommerce.orderservice.constant.ApiConstants.SET;
 import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CODE;
 
+import com.ecommerce.orderservice.payload.request.address.AddressRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderStatus;
@@ -49,8 +50,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,93 +76,115 @@ public class OrderDaoImpl implements OrderDao {
    * @return a Future that will complete with the order response
    */
   @Override
-  public Future<OrderResponse> saveOrder(MongoClient mongoClient, OrderRequest orderRequest, String token) {
+  public Future<OrderResponse> saveOrder(MongoClient mongoClient, OrderRequest orderRequest,
+                                         String username, String contactNumber, String token) {
 
-    List<OrderItemRequest> orderItems = orderRequest.getOrderItems();
+    AddressRequest address = orderRequest.getAddress();
+    address.setUsername(username);
+    address.setPhoneNumber(contactNumber);
+    address.setAddressCreationDate(LocalDateTime.now());
+    address.setLastUpdatedAddressDate(LocalDateTime.now());
 
-    return SingleHelper.toFuture(toSingle(validateProducts(orderItems)).flatMap(validatedProducts -> {
-      List<Integer> productIds =
-          orderItems.stream().map(OrderItemRequest::getProductId).collect(Collectors.toList());
+    return isValidAddress(mongoClient, address.getPostalCode(), address.getDistrict(), address.getStateName())
+        .flatMap(valid -> {
+          if (!valid) {
+            return Future.failedFuture("Invalid address: "
+                + "Pin does not match with district or state");
+          }
+          List<OrderItemRequest> orderItems = orderRequest.getOrderItems();
+          return SingleHelper.toFuture(
+              toSingle(validateProducts(orderItems)).flatMap(validatedProducts -> {
+                List<Integer> productIds =
+                    orderItems.stream()
+                              .map(OrderItemRequest::getProductId)
+                              .collect(Collectors.toList());
+                return Single.create(emitter -> findProductById(productIds)
+                  .onSuccess(emitter::onSuccess)
+                  .onFailure(emitter::onError)
+                );
+        }).flatMap(productResponses -> {
+          List<ProductResponse> productList = objectMapper.convertValue(
+              productResponses,
+              new TypeReference<List<ProductResponse>>() {}
+          );
+          Map<Integer, Float> productPriceMap =
+              productList.stream()
+                         .collect(Collectors.toMap(
+                             ProductResponse::getProductId,
+                             ProductResponse::getTotalPrice,
+                             (existing, duplicate) -> existing));
+          AtomicReference<Float> totalAmountRef = new AtomicReference<>(0f);
+          for (OrderItemRequest item : orderItems) {
+            float price = productPriceMap.getOrDefault(item.getProductId(), 0f);
+            totalAmountRef.set(totalAmountRef.get() + (price * item.getQuantity()));
+          }
+          JsonObject orderJson;
+          try {
+            orderRequest.setTotalAmount(totalAmountRef.get());
+            orderRequest.setAddress(address);
+            orderJson = OrderRequest.toJson(orderRequest);
+          } catch (JsonProcessingException e) {
+            LOG.error("JSON processing failed: {}", e.getMessage());
+            return Single.error(new RuntimeException("Failed to process order data"));
+          }
+          return mongoClient.rxSave(COLLECTION, orderJson)
+          .switchIfEmpty(Single.error(new IllegalStateException("Failed to save order")))
+          .flatMap(orderId -> {
+            LOG.info("processPayment called with orderId :: " + orderId);
 
-      return Single.create(emitter ->
-          findProductById(productIds)
-              .onSuccess(emitter::onSuccess)
-              .onFailure(emitter::onError));
+            PaymentRequest paymentRequest = new PaymentRequest();
+            paymentRequest.setPaymentDate(LocalDateTime.now());
+            paymentRequest.setTotalAmount(totalAmountRef.get());
 
-    }).flatMap(productResponses -> {
+            return Single.<PaymentResponse>create(emitter ->
+                processPayment(orderId, paymentRequest, token).onComplete(ar -> {
+                  if (ar.succeeded()) {
+                    emitter.onSuccess(ar.result());
+                  } else {
+                    emitter.onError(ar.cause());
+                  }
+                })
+            ).flatMap(paymentResponse ->
+                Single.create(emitter ->
+                    fetchPaymentStatusFromDb(orderId, token).onComplete(ar -> {
+                      if (ar.succeeded()) {
+                        emitter.onSuccess(ar.result());
+                      } else {
+                        emitter.onError(ar.cause());
+                      }
+                    })
+                ).map(latestPayment -> new Object[] {
+                    orderId, latestPayment, totalAmountRef.get()
+                })
+            );
+          });
+        }).flatMap(arr -> {
+          String orderId = (String) arr[0];
+          String paymentStatus = (String) arr[1];
+          float totalAmount = (Float) arr[2];
 
-      List<ProductResponse> productList =
-          objectMapper.convertValue(productResponses, new TypeReference<List<ProductResponse>>() {});
+          String newStatus = PaymentStatus.SUCCESS.name().equalsIgnoreCase(paymentStatus)
+              ? OrderStatus.CONFIRMED.name()
+              : OrderStatus.AWAITING_PAYMENT.name();
 
-      Map<Integer, Float> productPriceMap =
-          productList.stream()
-                     .collect(Collectors.toMap(ProductResponse::getProductId, ProductResponse::getTotalPrice,
-                         (existing, duplicate) -> existing));
+          JsonObject update = new JsonObject().put(SET, new JsonObject().put(ORDER_STATS, newStatus));
+          JsonObject query = new JsonObject().put(ORDER_ID, orderId);
 
-      AtomicReference<Float> totalAmountRef = new AtomicReference<>(0f);
-      for (OrderItemRequest item : orderItems) {
-        float price = productPriceMap.getOrDefault(item.getProductId(), 0f);
-        totalAmountRef.set(totalAmountRef.get() + (price * item.getQuantity()));
-      }
-
-      JsonObject orderJson;
-      try {
-        orderRequest.setTotalAmount(totalAmountRef.get());
-        orderJson = OrderRequest.toJson(orderRequest);
-      } catch (JsonProcessingException e) {
-        LOG.error("JSON processing failed: {}", e.getMessage());
-        return Single.error(new RuntimeException("Failed to process order data"));
-      }
-
-      return mongoClient.rxSave(COLLECTION, orderJson)
-           .switchIfEmpty(Single.error(new IllegalStateException("Failed to save order")))
-           .flatMap(orderId -> {
-             LOG.info("processPayment called with orderId :: " + orderId);
-
-             PaymentRequest paymentRequest = new PaymentRequest();
-             paymentRequest.setPaymentDate(LocalDateTime.now());
-             paymentRequest.setTotalAmount(totalAmountRef.get());
-
-             return Single.<PaymentResponse>create(
-                  emitter -> processPayment(orderId, paymentRequest, token).onComplete(ar -> {
-                    if (ar.succeeded()) {
-                      emitter.onSuccess(ar.result());
-                    } else {
-                      emitter.onError(ar.cause());
-                    }
-                  })).flatMap(paymentResponse -> Single.create(
-                      emitter -> fetchPaymentStatusFromDb(orderId, token).onComplete(ar -> {
-                        if (ar.succeeded()) {
-                          emitter.onSuccess(ar.result());
-                        } else {
-                          emitter.onError(ar.cause());
-                        }
-                      })
-             ).map(latestPayment -> new Object[] { orderId, latestPayment, totalAmountRef.get() }));
-           });
-    }).flatMap(arr -> {
-
-      String orderId = (String) arr[0];
-      String paymentStatus = (String) arr[1];
-      float totalAmount = (Float) arr[2];
-
-      String newStatus = PaymentStatus.SUCCESS.name().equalsIgnoreCase(paymentStatus)
-          ? OrderStatus.CONFIRMED.name() : OrderStatus.AWAITING_PAYMENT.name();
-
-      JsonObject update = new JsonObject().put(SET, new JsonObject().put(ORDER_STATS, newStatus));
-      JsonObject query = new JsonObject().put(ORDER_ID, orderId);
-
-      return mongoClient.rxUpdateCollection(COLLECTION, query, update)
-             .switchIfEmpty(Single.error(new IllegalStateException("Failed to update order status")))
-             .flatMap(updated -> mongoClient.rxFindOne(COLLECTION, query, null).toSingle())
-             .map(orderDoc -> {
-               OrderResponse response = new OrderResponse();
-               response.setOrderId(orderDoc.getString(ORDER_ID));
-               response.setOrderStatus(OrderStatus.valueOf(orderDoc.getString(ORDER_STATS)));
-               response.setTotalAmount(totalAmount);
-               return response;
-             });
-    }));
+          return mongoClient.rxUpdateCollection(COLLECTION, query, update)
+                .switchIfEmpty(Single.error(new IllegalStateException("Failed to update order status")))
+                .flatMap(updated ->
+                    mongoClient.rxFindOne(COLLECTION, query, null).toSingle()
+                )
+                .map(orderDoc -> {
+                  OrderResponse response = new OrderResponse();
+                  response.setOrderId(orderDoc.getString(ORDER_ID));
+                  response.setOrderStatus(OrderStatus.valueOf(orderDoc.getString(ORDER_STATS)));
+                  response.setTotalAmount(totalAmount);
+                  return response;
+                });
+        })
+    );
+        });
   }
 
   /**
@@ -524,5 +549,25 @@ public class OrderDaoImpl implements OrderDao {
           }
         })
     );
+  }
+
+  public Future<Boolean> isValidAddress(MongoClient mongoClient, Long pincode,
+                               String district, String state) {
+
+    JsonObject query = new JsonObject()
+        .put("pincode", pincode)
+        .put("district",
+            new JsonObject().put("$regex", "^" + Pattern.quote(district) + "$").put("$options", "i"))
+        .put("state",
+            new JsonObject().put("$regex", "^" + Pattern.quote(state) + "$").put("$options", "i"));
+
+    return SingleHelper.toFuture(
+        mongoClient.rxFindOne("pincode_data", query, null)
+         .map(Objects::nonNull)
+         .defaultIfEmpty(false)
+         .onErrorReturn(err -> {
+           LOG.error("Error in address validation: " + err.getMessage());
+           return false;
+         }));
   }
 }

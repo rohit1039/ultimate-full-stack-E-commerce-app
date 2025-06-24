@@ -56,7 +56,8 @@ public class OrderVerticle extends MainVerticle {
     List<ApiErrorResponse> errorResponses = new ArrayList<>();
     JsonObject requestBody = routingContext.body().asJsonObject();
     String username = routingContext.request().getHeader(USERNAME);
-    this.orderService.saveOrder(ConfigLoader.mongoConfig(), requestBody, username, errorResponses,
+    String contactNumber = routingContext.request().getHeader("contact");
+    this.orderService.saveOrder(ConfigLoader.mongoConfig(), requestBody, username,contactNumber, errorResponses,
         routingContext);
   }
 

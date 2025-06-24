@@ -26,6 +26,7 @@ public class ApiConstants {
   public static final String ID = "id";
   public static final String SET = "$set";
   public static final String ORDER_ITEMS = "order_items";
+  public static final String ADDRESS = "address";
   public static final String ORDER_PLACED_BY = "order_placed_by";
   public static final String ORDER_PLACED_AT = "order_placed_at";
   public static final String ORDER_UPDATED_AT = "order_updated_at";
