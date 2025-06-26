@@ -37,6 +37,10 @@ spring:
           uri: lb://order-service
           predicates:
             - Path=/orders/**
+        - id: cart-service
+          uri: lb://cart-service
+          predicates:
+            - Path=/carts/**
         - id: payment-service
           uri: lb://payment-service
           predicates:
@@ -86,6 +90,10 @@ springdoc:
       url: /payments/v3/api-docs
       name: Payment Service
       primaryName: Payment Service
+    urls[5]:
+      url: /carts/v3/api-docs
+      name: Cart Service
+      primaryName: Cart Service
   enable-native-support: true
   api-docs.enabled: true
 

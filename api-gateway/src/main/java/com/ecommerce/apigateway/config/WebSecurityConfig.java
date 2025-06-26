@@ -75,6 +75,8 @@ public class WebSecurityConfig {
         .permitAll()
         .pathMatchers("/orders/place-order")
         .permitAll()
+        .pathMatchers("/carts/**")
+        .permitAll()
         .pathMatchers("/orders/get-orders")
         .permitAll()
         .pathMatchers("/orders/all")
