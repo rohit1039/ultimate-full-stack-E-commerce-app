@@ -36,7 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
     RazorpayClient razorpayClient = new RazorpayClient(apiKey, apiSecret);
 
     JSONObject orderRequest = new JSONObject();
-    orderRequest.put("amount", paymentRequest.getTotalAmount() * 100); // Razorpay expects paise
+    orderRequest.put("amount", paymentRequest.getTotalAmount() * 100);
     orderRequest.put("currency", "INR");
 
     JSONObject customer = new JSONObject();

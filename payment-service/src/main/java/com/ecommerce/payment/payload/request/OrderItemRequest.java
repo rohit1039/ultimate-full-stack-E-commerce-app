@@ -22,8 +22,7 @@ public class OrderItemRequest {
   @JsonProperty("product_id")
   private int productId;
 
-  @JsonProperty("product_size")
-  private String productSize;
+  private String size;
 
   @JsonProperty("quantity")
   private int quantity;
