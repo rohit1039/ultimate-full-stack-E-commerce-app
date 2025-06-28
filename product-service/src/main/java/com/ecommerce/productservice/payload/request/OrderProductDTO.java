@@ -14,6 +14,6 @@ import lombok.ToString;
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class OrderProductDTO {
   private Integer productId;
-  private String productSize;
+  private String size;
   private Integer quantity;
 }

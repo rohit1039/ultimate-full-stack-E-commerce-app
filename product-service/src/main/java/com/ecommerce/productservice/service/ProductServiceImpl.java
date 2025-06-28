@@ -299,7 +299,7 @@ public class ProductServiceImpl implements ProductService {
 
     Map<String, OrderProductDTO> uniqueMap = new HashMap<>();
     for (OrderProductDTO item : products) {
-      String key = item.getProductId() + "-" + item.getProductSize();
+      String key = item.getProductId() + "-" + item.getSize();
       uniqueMap.merge(
           key,
           item,
@@ -327,7 +327,7 @@ public class ProductServiceImpl implements ProductService {
       // Find matching size
       Size matchedSize =
           product.getProductSizes().stream()
-              .filter(size -> size.getName().equals(prod.getProductSize()))
+              .filter(size -> size.getName().equals(prod.getSize()))
               .findFirst()
               .orElseThrow(
                   () ->
@@ -339,8 +339,8 @@ public class ProductServiceImpl implements ProductService {
         LOGGER.error(
             "Product ID: {}, size: {} is out of stock!",
             prod.getProductId(),
-            prod.getProductSize());
-        throw new RuntimeException("Insufficient stock for size: " + prod.getProductSize());
+            prod.getSize());
+        throw new RuntimeException("Insufficient stock for size: " + prod.getSize());
       }
 
       // Update reserved quantity safely
@@ -349,7 +349,7 @@ public class ProductServiceImpl implements ProductService {
               Criteria.where("_id")
                   .is(prod.getProductId())
                   .and("product_sizes.name")
-                  .is(prod.getProductSize()));
+                  .is(prod.getSize()));
       Update reserveUpdate =
           new Update().inc("product_sizes.$.reservedQuantity", prod.getQuantity());
 
@@ -358,7 +358,7 @@ public class ProductServiceImpl implements ProductService {
       LOGGER.info(
           "✅ Reserved Product ID: {}, Size: {}, Quantity: {}",
           prod.getProductId(),
-          prod.getProductSize(),
+          prod.getSize(),
           prod.getQuantity());
     }
   }
@@ -473,7 +473,7 @@ public class ProductServiceImpl implements ProductService {
 
           Size matchedSize =
               product.getProductSizes().stream()
-                  .filter(size -> size.getName().equals(prod.getProductSize()))
+                  .filter(size -> size.getName().equals(prod.getSize()))
                   .findFirst()
                   .orElseThrow(
                       () ->
@@ -484,7 +484,7 @@ public class ProductServiceImpl implements ProductService {
             LOGGER.warn(
                 "⚠️ Trying to release more than reserved for product: {}, size: {}",
                 prod.getProductId(),
-                prod.getProductSize());
+                prod.getSize());
             return;
           }
 
@@ -493,7 +493,7 @@ public class ProductServiceImpl implements ProductService {
               where("_id")
                   .is(prod.getProductId())
                   .and("product_sizes.name")
-                  .is(prod.getProductSize()));
+                  .is(prod.getSize()));
 
           Update update = new Update().inc("product_sizes.$.reservedQuantity", -prod.getQuantity());
 
@@ -502,7 +502,7 @@ public class ProductServiceImpl implements ProductService {
           LOGGER.info(
               "↩️ Released reserved product Id: {}, size: {}, quantity: {}",
               prod.getProductId(),
-              prod.getProductSize(),
+              prod.getSize(),
               prod.getQuantity());
         });
   }
@@ -512,7 +512,7 @@ public class ProductServiceImpl implements ProductService {
 
     Map<String, OrderProductDTO> mergedProducts = new HashMap<>();
     for (OrderProductDTO prod : products) {
-      String key = prod.getProductId() + "-" + prod.getProductSize();
+      String key = prod.getProductId() + "-" + prod.getSize();
       mergedProducts.merge(
           key,
           prod,
@@ -528,9 +528,11 @@ public class ProductServiceImpl implements ProductService {
       ProductResponseDTO productDTO = getProductById(prod.getProductId());
       Product product = modelMapper.map(productDTO, Product.class);
 
+      System.out.println(product.toString());
+
       Size matchedSize =
           product.getProductSizes().stream()
-              .filter(size -> size.getName().equals(prod.getProductSize()))
+              .filter(size -> size.getName().equals(prod.getSize()))
               .findFirst()
               .orElseThrow(
                   () ->
@@ -547,7 +549,7 @@ public class ProductServiceImpl implements ProductService {
               where("_id")
                   .is(prod.getProductId())
                   .and("product_sizes.name")
-                  .is(prod.getProductSize()));
+                  .is(prod.getSize()));
 
       Update stockUpdate =
           new Update()
@@ -567,7 +569,7 @@ public class ProductServiceImpl implements ProductService {
       LOGGER.info(
           "✅ Confirmed stock - Product ID: {}, Size: {}, Quantity: {}",
           prod.getProductId(),
-          prod.getProductSize(),
+          prod.getSize(),
           prod.getQuantity());
     }
   }
