@@ -12,7 +12,19 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-/** This class provides the implementation of the user service. */
+/**
+ * Implementation of the {@link UserService} interface, providing services for user management.
+ * This class performs operations related to retrieving user details and maps entities
+ * to their corresponding DTOs using ModelMapper.
+ * It leverages MongoTemplate to perform MongoDB queries for data persistence.
+ * Exception handling is included to manage scenarios such as disabled users
+ * or non-existent users.
+ *
+ * Responsibilities:
+ * - Retrieve user details by username.
+ * - Handle cases where a user is found but disabled.
+ * - Throw appropriate exceptions for non-existent users.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -24,10 +36,14 @@ public class UserServiceImpl implements UserService {
   private final ModelMapper modelMapper;
 
   /**
-   * This method returns the user details based on the username.
+   * Retrieves a user's details by their username.
+   * This method fetches the user from the database based on the provided username,
+   * validates if the user is enabled, and maps the user entity to a DTO response object.
    *
-   * @param username the username of the user
-   * @return the user details
+   * @param username the username to search for in the database
+   * @return UserDTOResponse containing the details of the user, including username,
+   *         role, and other relevant information
+   * @throws UserNotFoundException if the user does not exist or is disabled
    */
   @Override
   public UserDTOResponse getUserByUsername(String username) {

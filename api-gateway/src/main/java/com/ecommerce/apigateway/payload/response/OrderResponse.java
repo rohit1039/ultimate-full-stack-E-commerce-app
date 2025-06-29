@@ -1,7 +1,9 @@
-package com.ecommerce.orderservice.payload.request.address;
+package com.ecommerce.apigateway.payload.response;
 
+import com.ecommerce.apigateway.model.OrderItemRequest;
+import com.ecommerce.apigateway.model.OrderStatus;
+import com.ecommerce.apigateway.payload.request.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -9,9 +11,8 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import io.vertx.core.json.JsonObject;
 import java.time.LocalDateTime;
-import javax.validation.constraints.NotNull;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,43 +23,21 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class AddressRequest {
-
-  @NotNull
-  private String firstName;
-  @NotNull
-  private String lastName;
-  @NotNull
-  private String addressLine1;
-  private AddressType addressType;
-  private String addressLine2;
-  @NotNull
-  private String cityName;
-  private String district;
-  @NotNull
-  private String stateName;
-  @NotNull
-  private Long postalCode;
-  @NotNull
-  private String phoneNumber;
+public class OrderResponse {
+  private String orderId;
+  private Float totalAmount;
+  private List<OrderItemRequest> orderItems;
   private String username;
-
+  private PaymentStatus paymentStatus;
+  private OrderStatus orderStatus;
   @JsonInclude(value = JsonInclude.Include.NON_NULL)
   @JsonFormat(pattern = "dd/MM/yyyy hh:mm:ss a")
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-  @JsonIgnore
-  private LocalDateTime addressCreationDate;
-
+  private LocalDateTime orderDate;
   @JsonInclude(value = JsonInclude.Include.NON_NULL)
   @JsonFormat(pattern = "dd/MM/yyyy hh:mm:ss a")
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-  @JsonIgnore
-  private LocalDateTime lastUpdatedAddressDate;
-
-  public JsonObject toJsonObject(AddressRequest addressRequest) {
-
-    return JsonObject.mapFrom(addressRequest);
-  }
+  private LocalDateTime cancelDate;
 }

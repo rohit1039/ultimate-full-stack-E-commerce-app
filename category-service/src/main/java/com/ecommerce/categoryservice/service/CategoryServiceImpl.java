@@ -240,7 +240,7 @@ public class CategoryServiceImpl implements CategoryService {
   public List<CategoryResponseDTO> listHierarchicalCategories(
       List<Category> rootCategories, String role) {
     // create an empty list to hold the hierarchical categories
-    List<Category> hierarchicalCategories = new ArrayList<>();
+    Set<Category> hierarchicalCategories = new HashSet<>();
     // loop through each root category
     for (Category rootCategory : rootCategories) {
       // check if the root category has no parent
@@ -282,9 +282,9 @@ public class CategoryServiceImpl implements CategoryService {
    * @param subLevel the current subLevel
    */
   public void listSubHierarchicalCategories(
-      List<Category> hierarchicalCategories, Category parent, int subLevel) {
+      Set<Category> hierarchicalCategories, Category parent, int subLevel) {
     // Get the children categories of the parent category
-    List<Category> children = parent.getChildren();
+    Set<Category> children = parent.getChildren();
     // Increase the subLevel by 1
     int newSubLevel = subLevel + 1;
     // Loop through each child category

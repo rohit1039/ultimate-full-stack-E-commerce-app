@@ -21,7 +21,11 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 
-/** This class provides the implementation of the user service. */
+/**
+ * Implementation of the UserService interface for managing and processing user data. This service
+ * provides functionalities such as retrieving, updating, listing, deleting users, and managing user
+ * roles.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -33,10 +37,13 @@ public class UserServiceImpl implements UserService {
   private final ModelMapper modelMapper;
 
   /**
-   * This method returns the user details based on the username.
+   * Retrieves user details by the given username.
    *
-   * @param username the username of the user
-   * @return the user details
+   * @param username the username of the user to be retrieved. This corresponds to the "emailId"
+   *     field in the database.
+   * @return the user details wrapped in a {@code UserDTOResponse} object if the user exists and is
+   *     enabled.
+   * @throws UserNotFoundException if the user does not exist or if the user is disabled.
    */
   @Override
   public UserDTOResponse getUserByUsername(String username) {
@@ -62,12 +69,13 @@ public class UserServiceImpl implements UserService {
   }
 
   /**
-   * This method returns a page of users based on the search criteria.
+   * Retrieves a paginated list of users, optionally filtered by a search key.
    *
-   * @param pageNumber the page number
-   * @param pageSize the page size
-   * @param searchKey the search key
-   * @return the page of users
+   * @param pageNumber the page number to retrieve, starting from 1
+   * @param pageSize the number of users per page
+   * @param searchKey a string to filter the users by their email ID, first name, last name, or role
+   *     (case-insensitive)
+   * @return a paginated list of users as {@link Page<UserDTOResponse>}
    */
   @Override
   public Page<UserDTOResponse> usersList(int pageNumber, int pageSize, String searchKey) {
@@ -77,11 +85,13 @@ public class UserServiceImpl implements UserService {
   }
 
   /**
-   * This method updates the user details based on the username.
+   * Updates the details of an existing user based on the provided user data.
    *
-   * @param updateUserDTO the user details to update
-   * @param username the username of the user
-   * @return the updated user details
+   * @param updateUserDTO the DTO containing the updated user information such as age, avatar name,
+   *     first name, and last name
+   * @param username the unique username of the user to be updated
+   * @return a response object containing the updated user information
+   * @throws UserNotFoundException if the user does not exist or is disabled
    */
   @Override
   public UserDTOResponse updateUser(UpdateUserDTO updateUserDTO, String username) {
@@ -117,9 +127,10 @@ public class UserServiceImpl implements UserService {
   }
 
   /**
-   * This method returns a list of all users.
+   * Retrieves a list of all users mapped to {@link UserDTOResponse}. The method fetches all users
+   * from the database, converts them to DTOs, and returns them as a list.
    *
-   * @return a list of all users
+   * @return a list of {@link UserDTOResponse} objects representing all users in the system.
    */
   @Override
   public List<UserDTOResponse> listAll() {
@@ -131,11 +142,12 @@ public class UserServiceImpl implements UserService {
   }
 
   /**
-   * This method updates the role of the user based on the username.
+   * Updates the role of a specific user identified by their username.
    *
-   * @param username the username of the user
-   * @param role the role of the user
-   * @return the updated user details
+   * @param username the username of the user whose role is to be updated
+   * @param role the new role to assign to the user
+   * @return a response object containing the updated user details
+   * @throws UserNotFoundException if no user is found with the specified username
    */
   @Override
   public UserDTOResponse updateRole(String username, Role role) {
@@ -160,10 +172,13 @@ public class UserServiceImpl implements UserService {
   }
 
   /**
-   * This method deletes the user based on the username.
+   * Deletes a user by their username. If the user exists and is currently enabled, this method
+   * disables the user and removes them from the system. If the user does not exist or is already
+   * deleted, an exception is thrown.
    *
-   * @param username the username of the user
-   * @return a message indicating whether the user was deleted or not
+   * @param username the username (email ID) of the user to delete
+   * @return a message confirming the user deletion with the username
+   * @throws UserNotFoundException if the user does not exist or is already deleted
    */
   @Override
   public String deleteUser(String username) {
@@ -188,11 +203,13 @@ public class UserServiceImpl implements UserService {
   }
 
   /**
-   * This method returns a page of filtered users based on the search criteria.
+   * Retrieves a page of filtered user data based on provided pagination details and a search key.
+   * The search is performed across multiple fields such as emailId, firstName, lastName, and role.
    *
-   * @param pageable the pageable object
-   * @param searchKey the search key
-   * @return the page of filtered users
+   * @param pageable the pagination information, including the page number and size
+   * @param searchKey the key used to filter users by matching against emailId, firstName, lastName,
+   *     or role
+   * @return a paginated list of filtered users represented as UserDTOResponse objects
    */
   public Page<UserDTOResponse> getPageOfFilteredUsers(Pageable pageable, String searchKey) {
 

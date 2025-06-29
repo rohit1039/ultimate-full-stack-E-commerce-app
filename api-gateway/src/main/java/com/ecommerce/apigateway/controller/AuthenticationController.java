@@ -37,6 +37,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+/**
+ * Controller responsible for user authentication-related operations such as registration, login,
+ * and password reset.
+ *
+ * <p>This class contains endpoints that are used to perform authentication functionalities for
+ * users including new user registration, user login to generate JWT tokens, and password
+ * reset/update.
+ */
 @RestController
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
@@ -61,10 +69,12 @@ public class AuthenticationController {
   private final UserModelAssembler userModelAssembler;
 
   /**
-   * This API is used to register the user, and save into the database.
+   * Registers a new user in the system and sends a confirmation email upon successful registration.
    *
-   * @param userDTO receive request from payload
-   * @return model based response and status code
+   * @param userDTO the user data transfer object containing the user's details for registration
+   * @return a ResponseEntity containing an EntityModel of the registered user's details if
+   *     successful
+   * @throws InterruptedException if the operation is interrupted during email sending or processing
    */
   @Operation(
       summary = "Register a new user to be managed by the admins",
@@ -113,6 +123,12 @@ public class AuthenticationController {
     return new ResponseEntity<>(userModel, HttpStatus.CREATED);
   }
 
+  /**
+   * Retrieves a user's details by their email ID.
+   *
+   * @param emailId the email ID of the user to be retrieved
+   * @return a {@code UserDTOResponse} object containing the user's details
+   */
   public UserDTOResponse getUserByEmail(String emailId) {
 
     UserDTOResponse userDTOResponse = this.userService.getUserByUsername(emailId);
@@ -120,10 +136,14 @@ public class AuthenticationController {
   }
 
   /**
-   * This API is used to log in, so that JWT can be generated
+   * Authenticates a user and generates a token for future requests.
    *
-   * @param loginDTO payload to get username and password
-   * @return JWTResponse
+   * @param loginDTO The login credentials that include the username and password.
+   * @return A Mono containing the ResponseEntity with a JSON object including the generated
+   *     authentication token upon successful login. The response may vary based on authentication
+   *     results: - On success: Returns a 200 status with the login token. - On failure due to
+   *     unregistered user: Returns a 404 status. - On unauthorized access: Returns a 401 status. -
+   *     On input validation failure: Returns a 400 status. - On server error: Returns a 500 status.
    */
   @Operation(
       summary = "Login to get a token for authentication",
@@ -187,10 +207,15 @@ public class AuthenticationController {
   }
 
   /**
-   * This API is used to enable the user update their password by satisfying the password criteria
+   * Handles the forgot password functionality for a registered user.
    *
-   * @param forgotPasswordDTO Request to reset password
-   * @return either JWTResponse or error Message with status codes
+   * <p>This method processes a PATCH request to reset the user's password and ensures that the
+   * updated password is used for future account access.
+   *
+   * @param forgotPasswordDTO the data transfer object containing user details and the new password
+   *     information required for updating the password
+   * @return a ResponseEntity containing ForgotPasswordResponse with details of the reset password
+   *     operation's result
    */
   @Operation(
       summary = "Reset password for user, and use the updated password for future access",

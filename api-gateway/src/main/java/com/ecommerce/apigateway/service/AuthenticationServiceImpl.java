@@ -30,8 +30,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * This service class contains the business logic for user authentication and account management. It
- * interacts with the database and sends email notifications.
+ * Service implementation for authentication-related operations.
+ * This class provides methods to handle user creation, password reset, duplicate email check,
+ * and sending email notifications.
+ *
+ * It offers functionalities such as registering new users, facilitating password resets with
+ * appropriate validations, verifying duplicate email addresses, and sending asynchronous email
+ * notifications.
  */
 @Service
 @RequiredArgsConstructor
@@ -48,11 +53,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   private final JavaMailSender mailSender;
 
   /**
-   * Creates a new user account.
+   * Creates a new user in the system based on the provided user details.
+   * If the user’s email ID already exists, this method throws a DuplicateUsernameException.
    *
-   * @param userDTO the user data
-   * @return the user data with additional fields such as avatar name and role
-   * @throws DuplicateUsernameException if the email address is already in use
+   * @param userDTO the data transfer object containing the user's details
+   *                including email, password, and profile information.
+   * @return a data transfer object containing the details of the newly created user.
+   * @throws DuplicateUsernameException if the email ID already exists in the database.
    */
   @Override
   public UserDTOResponse createUser(UserDTO userDTO) throws DuplicateUsernameException {
@@ -76,12 +83,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   }
 
   /**
-   * Sends a password reset email to the user.
+   * Handles the process of resetting a user's password. Validates the old password,
+   * checks criteria for the new password, and updates the user's information in the database
+   * if all conditions are met.
    *
-   * @param forgotPasswordDTO the user's email address
-   * @return the user data with additional fields such as first name, last name, and avatar name
-   * @throws UserNotFoundException if the user does not exist
-   * @throws PasswordCriteriaException if the new password does not meet the criteria
+   * @param forgotPasswordDTO the data transfer object containing the user's username, old password,
+   *                          and the new password intended to replace the old one
+   * @return an instance of {@code ForgotPasswordResponse} containing the updated
+   *         information of the user such as email, name, and other details
+   * @throws UserNotFoundException if the provided username does not match any user in the database
+   * @throws PasswordCriteriaException if the new password does not meet the required strength criteria
+   *                                   or if the old password is incorrect
    */
   @Override
   public ForgotPasswordResponse forgotPassword(ForgotPasswordDTO forgotPasswordDTO)
@@ -123,11 +135,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   }
 
   /**
-   * Checks if the email address is already in use.
+   * Checks if the given email ID in the provided UserDTO already exists in the database.
+   * If a user with the specified email ID is found, an exception is thrown.
    *
-   * @param userDTO the user data
-   * @return the user if the email is not in use, null otherwise
-   * @throws DuplicateUsernameException if the email address is already in use
+   * @param userDTO the UserDTO object containing the email ID to be checked for duplication
+   * @return the UserDTOResponse object if no duplicate email ID is found, otherwise null
+   * @throws DuplicateUsernameException if a user already exists with the provided email ID
    */
   @Override
   public UserDTOResponse checkDuplicateEmailIDs(UserDTO userDTO) throws DuplicateUsernameException {
@@ -144,11 +157,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   }
 
   /**
-   * Sends an email to the specified recipient.
+   * Sends an email asynchronously to the specified recipient.
    *
-   * @param to the recipient's email address
-   * @param fullName the recipient's full name
-   * @param subject the email subject
+   * @param to the email address of the recipient
+   * @param fullName the full name of the recipient to personalize the email content
+   * @param subject the subject of the email
+   * @return a CompletableFuture<Void> which completes successfully if the email was sent,
+   *         or exceptionally in case of an error
    */
   @Override
   @Async
@@ -171,10 +186,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   }
 
   /**
-   * Returns the email body for the password reset email.
+   * Generates the HTML body content for an email notification, customized with the recipient's full name.
    *
-   * @param fullName the recipient's full name
-   * @return the email body
+   * @param fullName the full name of the recipient that will be included in the email body
+   * @return a String representing the HTML email body with the recipient's name and additional details
    */
   private String getMailBody(String fullName) {
 

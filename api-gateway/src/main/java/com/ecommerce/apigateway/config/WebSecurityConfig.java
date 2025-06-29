@@ -19,6 +19,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+/**
+ * The WebSecurityConfig class is a configuration class for setting up application-level security using Spring WebFlux.
+ * It primarily defines security policies, authentication mechanisms, authorization rules, and cross-origin resource sharing (CORS) policies.
+ */
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
@@ -31,11 +35,14 @@ public class WebSecurityConfig {
   private final CustomUserDetailsService userDetailsService;
 
   /**
-   * This SecurityFilterChain is used to allow or restrict users in order to access certain
-   * resources
+   * Configures the Spring Security filter chain for the web application. This method specifies
+   * the security rules for different API endpoints, including authentication and authorization
+   * policies, exception handling, and additional security configurations.
    *
-   * @param http to get http requests
-   * @return chain of authorized http requests
+   * @param http the {@code ServerHttpSecurity} object used to customize the security settings
+   *             for the application.
+   * @return a configured {@code SecurityWebFilterChain} containing the security rules and filters
+   *         for the application.
    */
   @Bean
   public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
@@ -50,6 +57,8 @@ public class WebSecurityConfig {
         .pathMatchers("/webhook/**")
         .permitAll()
         .pathMatchers(HttpMethod.GET, "/users/v3/api-docs/**")
+        .permitAll()
+        .pathMatchers(HttpMethod.GET, "/cart/v3/api-docs/**")
         .permitAll()
         .pathMatchers(HttpMethod.GET, "/api/v3/api-docs/**")
         .permitAll()
@@ -73,10 +82,12 @@ public class WebSecurityConfig {
         .permitAll()
         .pathMatchers("/v1/auth/**")
         .permitAll()
+        .pathMatchers("/gateway/**")
+        .authenticated()
         .pathMatchers("/orders/place-order")
         .permitAll()
-        .pathMatchers("/carts/**")
-        .permitAll()
+        .pathMatchers("/cart/**")
+        .authenticated()
         .pathMatchers("/orders/get-orders")
         .permitAll()
         .pathMatchers("/orders/all")
@@ -102,9 +113,9 @@ public class WebSecurityConfig {
   }
 
   /**
-   * This PasswordEncoder is used to encrypt user's password
+   * Provides a bean of type {@link PasswordEncoder} for encoding and verifying passwords.
    *
-   * @return BCryptPasswordEncoder
+   * @return an instance of {@link BCryptPasswordEncoder} to handle password encoding.
    */
   @Bean
   public PasswordEncoder passwordEncoder() {
@@ -112,6 +123,14 @@ public class WebSecurityConfig {
     return new BCryptPasswordEncoder();
   }
 
+  /**
+   * Creates and configures a ReactiveAuthenticationManager bean that uses a
+   * UserDetailsRepositoryReactiveAuthenticationManager to authenticate users.
+   * The authentication manager is set up with a password encoder to handle
+   * password validation.
+   *
+   * @return a configured instance of ReactiveAuthenticationManager
+   */
   @Bean
   public ReactiveAuthenticationManager authenticationManager() {
     UserDetailsRepositoryReactiveAuthenticationManager authenticationManager =
@@ -123,9 +142,11 @@ public class WebSecurityConfig {
   }
 
   /**
-   * This method is used to configure CORs policy with client i.e. React
+   * Configures and provides a CORS filter bean to handle Cross-Origin Resource Sharing (CORS) configurations.
+   * This method sets up the necessary CORS rules, such as allowing credentials, defining allowed origins, headers,
+   * methods, and the maximum age for CORS preflight requests.
    *
-   * @return allowed CORs origin http methods
+   * @return a {@link CorsFilter} configured with the specified CORS settings.
    */
   @Bean
   public CorsFilter corsFilter() {

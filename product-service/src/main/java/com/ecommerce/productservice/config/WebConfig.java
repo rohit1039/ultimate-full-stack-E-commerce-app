@@ -17,6 +17,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
 public class WebConfig implements WebMvcConfigurer {
 
+  /**
+   * Provides an instance of {@link ObjectMapper} configured with specific settings: - Uses
+   * snake_case for property naming. - Registers the {@link JavaTimeModule} for handling Java 8 date
+   * and time types. - Enables pretty-printing for JSON serialization. - Registers subtypes for
+   * {@link Links} and {@link Link} classes.
+   *
+   * @return a configured {@link ObjectMapper} instance.
+   */
   @Bean
   public ObjectMapper objectMapper() {
     // Create a new ObjectMapper with snake_case property naming strategy
@@ -28,6 +36,14 @@ public class WebConfig implements WebMvcConfigurer {
     return mapper;
   }
 
+  /**
+   * Configures resource handlers to serve static resources such as product images.
+   *
+   * <p>This method maps specific URL paths to corresponding resource locations on the file system,
+   * enabling the application to serve static files directly.
+   *
+   * @param registry the {@code ResourceHandlerRegistry} instance used to register resource mappings
+   */
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     // Register a resource handler for serving product images

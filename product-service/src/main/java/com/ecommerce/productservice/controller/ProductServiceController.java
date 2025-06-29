@@ -58,6 +58,25 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * The ProductServiceController class is responsible for handling HTTP requests related to product
+ * operations. This includes adding, retrieving, updating, and reducing the count of products, as
+ * well as filtering products by category. It provides a RESTful API for managing product data,
+ * accessible to specific roles based on authorization.
+ *
+ * <p>Fields: - LOGGER: Used for logging relevant information and activities within the class. -
+ * productService: Service to handle the business logic related to product operations. -
+ * productAssembler: Used to create response representations of product entities. - modelMapper:
+ * Utility for object mapping between different data representations.
+ *
+ * <p>Methods: - addProduct: Adds a new product to the database under a specified category. -
+ * getProductById: Retrieves a product based on its unique identifier. - getAllProducts: Fetches a
+ * paginated list of all products, with optional search functionality. - getProductsByCategory:
+ * Retrieves a paginated list of products associated with a specific category, with optional search
+ * support. - updateProduct: Updates an existing product's details based on its ID. -
+ * reduceProductCount: Decreases the count of specified products, typically used for order
+ * processing.
+ */
 @RestController
 @RequiredArgsConstructor
 @Tag(
@@ -78,12 +97,17 @@ public class ProductServiceController {
   private final ModelMapper modelMapper;
 
   /**
-   * Adds a new product to the database.
+   * Handles the addition of a new product to the specified category. This endpoint is accessible
+   * only by users with admin roles.
    *
-   * @param productRequestDTO the product information to add
-   * @param categoryId the ID of the category to which the product should be added
-   * @return a response indicating whether the product was added successfully
-   * @throws Exception if there was an error adding the product
+   * @param username the username of the user making the request, extracted from the request header
+   * @param role the role of the user making the request, extracted from the request header
+   * @param productRequestDTO the product data provided in the request body to be added
+   * @param categoryId the ID of the category in which the product will be added, provided as a path
+   *     variable
+   * @return a ResponseEntity containing the added product as a resource and an HTTP status of 201
+   *     (Created)
+   * @throws Exception if an error occurs during the product creation process
    */
   @Operation(
       summary = "Add a new product",
@@ -115,11 +139,14 @@ public class ProductServiceController {
   }
 
   /**
-   * Returns a product with the specified ID.
+   * Retrieves a product by its unique identifier.
    *
-   * @param productId the ID of the product to retrieve
-   * @return the product with the specified ID, or an error response if the product could not be
-   *     found
+   * <p>A GET request to fetch a product using its ID. This endpoint is accessible by both clients
+   * and administrators.
+   *
+   * @param productId the unique identifier of the product to be retrieved
+   * @return a ResponseEntity containing an EntityModel of ProductResponseDTO if the product is
+   *     found successfully, along with the appropriate HTTP status code
    */
   @Operation(
       summary = "Get product by Id",
@@ -145,11 +172,15 @@ public class ProductServiceController {
   }
 
   /**
-   * Returns a list of all products.
+   * Retrieves all products with optional pagination and search functionality. Provides a pageable
+   * list of products that match the specified criteria.
    *
-   * @param pageNumber the page number of the results to return (default: 1)
-   * @param pageSize the number of results to return per page (default: 5)
-   * @return a list of products
+   * @param pageNumber the page number to retrieve, must be greater than or equal to 1, default is 1
+   * @param pageSize the number of products per page, must be between 5 and 20, default is 5
+   * @param searchKey an optional search keyword to filter products, default is an empty string
+   * @return a {@link ResponseEntity} containing a {@link CollectionModel} of {@link
+   *     ProductResponseDTO} representing the products found, along with HTTP status code
+   * @throws JsonProcessingException if any JSON processing errors occur
    */
   @Operation(
       summary = "Get all products",
@@ -201,12 +232,19 @@ public class ProductServiceController {
   }
 
   /**
-   * Get products by category
+   * Retrieves a list of products associated with a specific category. The results can be paginated
+   * and optionally filtered by a search keyword. Accessible to users with valid roles such as
+   * CLIENTS and ADMINS.
    *
-   * <p>A GET request to get a list of products tagged to a specific category
-   *
-   * @param categoryId the id of the category to filter products by
-   * @return a list of products in the specified category
+   * @param categoryId the ID of the category for which products are to be retrieved
+   * @param pageNumber the page number of the results to retrieve, starting from 1
+   * @param pageSize the number of products to retrieve per page, with a minimum of 5 and a maximum
+   *     of 20
+   * @param searchKey an optional keyword to filter the products by a search query
+   * @param role the user role provided in the request header to determine access permissions
+   * @return a ResponseEntity containing a CollectionModel of ProductResponseDTO if products are
+   *     found; returns a status of 204 (no content) if no products are found
+   * @throws JsonProcessingException if there is an error processing JSON data
    */
   @Operation(
       summary = "Get products by category",
@@ -264,11 +302,15 @@ public class ProductServiceController {
   }
 
   /**
-   * This endpoint is used to update the information of a specific product.
+   * Updates an existing product identified by its ID. This method is only accessible to users with
+   * admin privileges, allowing them to modify the product's details using the provided information.
    *
-   * @param productId the id of the product to update
-   * @param productRequestDTO the updated information of the product
-   * @return the updated product information
+   * @param username the username of the authenticated user making the request
+   * @param role the role of the authenticated user making the request
+   * @param productId the ID of the product to be updated
+   * @param productRequestDTO the updated product details encapsulated in a request DTO
+   * @return a ResponseEntity containing the updated product details wrapped in an EntityModel
+   * @throws Exception if an error occurs during the update process
    */
   @Operation(
       summary = "Update product by Id",
@@ -300,10 +342,13 @@ public class ProductServiceController {
   }
 
   /**
-   * This endpoint is used to reduce the count of multiple products.
+   * Reduces the count of specified products by processing an order.
    *
-   * @param products list of products
-   * @return a response indicating whether the count was reduced successfully
+   * @param products a list of products specified through OrderProductDTO, each containing
+   *     information about the product and the quantity to order
+   * @return ResponseEntity<Void> indicating the status of the operation; HTTP status codes used
+   *     include 200 (success), 400 (validation error), 401 (unauthorized user), 404 (product not
+   *     found), and 500 (server error)
    */
   @Operation(
       summary = "Reduce product count",
@@ -325,10 +370,11 @@ public class ProductServiceController {
   }
 
   /**
-   * This gets called when payment fails
+   * Releases the reserved stock for the given list of products.
    *
-   * @param products
-   * @return
+   * @param products a list of {@code OrderProductDTO} objects representing the products whose
+   *     reserved stock should be released
+   * @return a {@code ResponseEntity<Void>} indicating the HTTP response status
    */
   @PostMapping("/v1/reserved-stocks/release")
   public ResponseEntity<Void> releaseReservedStock(@RequestBody List<OrderProductDTO> products) {
@@ -337,10 +383,11 @@ public class ProductServiceController {
   }
 
   /**
-   * This gets called when payment is success
+   * Confirms the stock availability for the given list of products by their count.
    *
-   * @param products
-   * @return
+   * @param products a list of {@code OrderProductDTO} objects representing the products to confirm
+   *     stock count for
+   * @return a {@code ResponseEntity<Void>} indicating the operation's success
    */
   @PostMapping("/v1/confirm-stocks/count")
   public ResponseEntity<Void> confirmProductCount(@RequestBody List<OrderProductDTO> products) {
@@ -349,10 +396,11 @@ public class ProductServiceController {
   }
 
   /**
-   * This API is used to download products data in an Excel file
+   * Exports the list of products to an Excel file.
    *
-   * @param response to set content type and headed value
-   * @throws IOException to handle Input/Output exceptions
+   * @param response the HTTP response to which the Excel file will be written
+   * @param role the role of the user making the request, which must be "ADMIN"
+   * @throws IOException if an I/O error occurs during the export process
    */
   @Operation(
       summary = "Export products data in Excel",
@@ -379,10 +427,12 @@ public class ProductServiceController {
   }
 
   /**
-   * This API is used to download products data in a Pdf file
+   * Exports the list of products to a PDF file. This method is accessible only to users with admin
+   * privileges. The PDF file is generated and written to the provided HTTP response.
    *
-   * @param response to set content type and headed value
-   * @throws IOException to handle Input/Output exceptions
+   * @param response the HttpServletResponse instance to write the PDF file to
+   * @param role the user role passed via the request header, used to authorize the operation
+   * @throws IOException if an input or output exception occurs during the PDF generation process
    */
   @Operation(
       summary = "Export products data in Pdf",
@@ -411,12 +461,18 @@ public class ProductServiceController {
   }
 
   /**
-   * This API is used to upload the product image
+   * Uploads images for a specified product. The method allows uploading a main image and additional
+   * extra images for a specific product by its unique ID. This operation is accessible only to
+   * users with administrative roles.
    *
-   * @param mainImage product mainImage to upload
-   * @param extraImages product extraImages to upload
-   * @return response object and status code
-   * @throws IOException if any exception occurs
+   * @param mainImage the main image file to be uploaded for the product
+   * @param extraImages an array of additional image files to be uploaded for the product
+   * @param productId the unique identifier of the product
+   * @param role the role of the user performing the operation, typically "ADMIN"
+   * @param username the username of the user performing the operation
+   * @return a ResponseEntity containing a success message upon successful upload of the images
+   * @throws Exception if any error occurs during the process of retrieving the product, saving the
+   *     images, or updating the product
    */
   @Operation(
       summary = "Upload product's images",
@@ -463,10 +519,14 @@ public class ProductServiceController {
   }
 
   /**
-   * This API is used to download the image file
+   * Downloads the image file of a product based on the provided file name. This method handles GET
+   * requests and provides the specified file as a resource for download. The file is identified
+   * using the product ID and the image name.
    *
-   * @param imageName to download
-   * @return file and status code
+   * @param productId The unique identifier of the product whose image is to be downloaded.
+   * @param imageName The name of the image file to be downloaded.
+   * @return A ResponseEntity containing the requested file as a resource if successful, or an
+   *     appropriate HTTP status (e.g., 404 if the file is not found, 500 for server errors).
    */
   @Operation(
       summary = "Download image of product by file name",
@@ -507,10 +567,13 @@ public class ProductServiceController {
   }
 
   /**
-   * This method is used to softly delete a product
+   * Deletes a product by the specified product ID. Only users with admin roles are authorized to
+   * perform this operation.
    *
-   * @param productId id of the product
-   * @return ResponseEntity with status code 200 OK
+   * @param productId the unique identifier of the product to be deleted
+   * @param role the role of the user making the request, used to verify authorization
+   * @return ResponseEntity with HTTP status 200 if the product is successfully deleted
+   * @throws Exception if an error occurs during the deletion process
    */
   @Operation(
       summary = "Delete product by product Id",
@@ -534,13 +597,15 @@ public class ProductServiceController {
   }
 
   /**
-   * This function takes in a list of products and a page of products and returns a CollectionModel
-   * of ProductResponseDTOs that includes pagination metadata. It iterates over the products list
-   * and adds the links from the HATEOAS EntityModel to each ProductResponseDTO.
+   * Adds pagination metadata and hypermedia links to a list of products.
    *
-   * @param products the list of products to add pagination metadata to
-   * @param page the page of products to add pagination metadata to
-   * @return a CollectionModel of ProductResponseDTOs with pagination metadata
+   * @param products the list of products to be included in the paginated response
+   * @param page the page object containing pagination details such as current page, size, etc.
+   * @param categoryId the category ID to filter the products, where 0 means no category filter
+   * @param searchKey the search term for filtering products
+   * @param role the role of the user for filtering or accessing specific products
+   * @return a CollectionModel containing the paginated products along with metadata and links
+   * @throws JsonProcessingException if there is an error during JSON processing
    */
   private CollectionModel<ProductResponseDTO> addPageMetadata(
       List<ProductResponseDTO> products,

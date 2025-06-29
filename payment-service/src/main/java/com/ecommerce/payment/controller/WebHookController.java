@@ -31,6 +31,29 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * The WebHookController class handles incoming Razorpay webhook events. It validates the event
+ * payload and signature, processes the payment information, updates the database, and notifies
+ * other services about the payment status.
+ *
+ * <p>This controller is specifically designed to handle the `payment_link.paid` webhook event from
+ * Razorpay and perform the following actions: - Validate the webhook signature for authenticity. -
+ * Parse the event payload to extract relevant payment details. - Fetch payment information and
+ * update the application's database accordingly. - Notify external services like order service and
+ * product service about the payment status to ensure consistency across systems.
+ *
+ * <p>Dependencies: - PaymentService: Used to manage payment-related business logic. -
+ * PaymentRepository: Used to interact with the database storing payment information. -
+ * RestTemplate: Used to interact with external services like order and product service.
+ *
+ * <p>Configuration: - Requires the Razorpay API key and secret to be configured in the environment.
+ *
+ * <p>Endpoint: - POST /webhook/razorpay: Handles webhook events from Razorpay.
+ *
+ * <p>Errors: - Returns a 401 Unauthorized response if the webhook signature is invalid. - Returns a
+ * 500 Internal Server Error response in case of any processing failure. - Returns a 502 Bad Gateway
+ * response if communication with external services fails.
+ */
 @RestController
 public class WebHookController {
 

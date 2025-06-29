@@ -46,6 +46,16 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * UserServiceController is a REST controller for managing user-related operations. It includes APIs
+ * to retrieve, update, and delete users while enforcing role-based access controls for operations
+ * accessible by ADMINS and USERS.
+ *
+ * <p>Fields: - LOGGER: Logger instance for logging operations and exceptions. - userService:
+ * Service layer dependency managing business logic for user operations. - userModelAssembler:
+ * Assembler for transforming user entities into API response models. - modelMapper: Utility for
+ * mapping between DTOs and entity objects.
+ */
 @RestController
 @Tag(name = "User Service", description = "Admins should use this service to get/read all users")
 @RequiredArgsConstructor
@@ -61,10 +71,11 @@ public class UserServiceController {
   private final ModelMapper modelMapper;
 
   /**
-   * This API is used to get the details of the user by username
+   * Retrieves a user by their email address, accessible only by admins.
    *
-   * @param emailId Get the details of the user by emailId
-   * @return user if exists with status code
+   * @param emailId the email address of the user to be retrieved
+   * @return a {@code ResponseEntity} containing an {@code EntityModel} of {@code UserDTOResponse}
+   *     if the user is found
    */
   @Operation(
       summary = "Get user by username managed by admins",
@@ -113,9 +124,14 @@ public class UserServiceController {
   }
 
   /**
-   * This API is used to get list of users
+   * Retrieves all users managed by admins, with optional pagination and filtering support.
    *
-   * @return - embedded models based response with status code
+   * @param pageNumber the page number to retrieve (minimum value is 1, default value is 1)
+   * @param pageSize the number of items per page (minimum value is 5 and maximum value is 20,
+   *     default value is 5)
+   * @param query the field name to filter the response by
+   * @return a ResponseEntity containing the collection of users with associated metadata, or
+   *     appropriate HTTP status if no users are found
    */
   @Operation(
       summary = "Get all users managed by admins",
@@ -192,10 +208,12 @@ public class UserServiceController {
   }
 
   /**
-   * This API is used to update the user with the values provided on the payload
+   * Updates an existing user based on the provided user details.
    *
-   * @param updateUserDTO get fields that needs to be updated
-   * @return updatedUser and status code
+   * @param updateUserDTO The data transfer object containing the updated user details.
+   * @return A ResponseEntity containing the EntityModel of the updated UserDTOResponse. Returns a
+   *     200 status code if the update is successful. Possible errors include: - 401 Unauthorized
+   *     access - 404 User not found - 500 Internal server error
    */
   @Operation(
       summary = "Update user by username managed by all users",
@@ -244,10 +262,13 @@ public class UserServiceController {
   }
 
   /**
-   * This API is used to update only role by ADMIN
+   * Updates the role of a user identified by their username. This operation is accessible only by
+   * administrators.
    *
-   * @param username to fetch user
-   * @return updated user role and status code
+   * @param username the username of the user whose role is to be updated
+   * @param role the new role to be assigned to the user
+   * @return a ResponseEntity containing an EntityModel of UserDTOResponse if the update is
+   *     successful
    */
   @Operation(
       summary = "Update user by user's role",
@@ -302,12 +323,14 @@ public class UserServiceController {
   }
 
   /**
-   * This API is only accessible by ADMIN
+   * Deletes a user identified by the provided username.
    *
-   * <p>USER cannot access it
+   * <p>This method handles HTTP DELETE requests to remove a specific user from the system,
+   * accessible only by users with admin-level privileges.
    *
-   * @param emailId to check if user exists in the database
-   * @return success message and status code
+   * @param emailId the username of the user to be deleted
+   * @return a ResponseEntity containing a success message with HTTP 200 status if the deletion is
+   *     successful
    */
   @Operation(
       summary = "Delete user by username",
@@ -353,11 +376,13 @@ public class UserServiceController {
   }
 
   /**
-   * This API is used to upload the user display picture
+   * Uploads a display picture for a user and updates the user's information with the new file name.
    *
-   * @param multipartFile imageFile
-   * @return response object and status code
-   * @throws IOException if any exception occurs
+   * @param multipartFile the image file to be uploaded
+   * @param username the username of the user whose display picture is being updated
+   * @return a ResponseEntity object with a success message and HTTP status code 200 on successful
+   *     upload
+   * @throws IOException if an error occurs during file upload or processing
    */
   @Operation(
       summary = "Upload user's display picture",
@@ -386,10 +411,14 @@ public class UserServiceController {
   }
 
   /**
-   * This API is used to download the image file
+   * Downloads the file associated with the specified avatar name. This method allows authorized
+   * administrators to retrieve a file resource, typically an image, by its corresponding file code.
    *
-   * @param avatarName to make imageName unique
-   * @return file and status code
+   * @param avatarName the name of the avatar file to be downloaded
+   * @return a ResponseEntity containing the file resource. If the file is found, the response
+   *     contains the file as an attachment with a 200 status code. If the file is not found, a
+   *     response with a 404 status code is returned. In the case of unauthorized access or server
+   *     errors, appropriate response codes (401 or 500) are returned.
    */
   @Operation(
       summary = "Download image of user by file code",
@@ -430,10 +459,12 @@ public class UserServiceController {
   }
 
   /**
-   * This API is used to download users data in an Excel file
+   * Exports a list of users to an Excel file, available only to users with an admin role. The
+   * exported Excel file is written directly to the HTTP response stream.
    *
-   * @param response to set content type and headed value
-   * @throws IOException to handle Input/Output exceptions
+   * @param response the HttpServletResponse to write the Excel file to
+   * @param role the role of the user making the request, expected to be "admin"
+   * @throws IOException if an I/O error occurs while generating or writing the Excel file
    */
   @Operation(
       summary = "Export user's data in Excel",
@@ -470,10 +501,14 @@ public class UserServiceController {
   }
 
   /**
-   * This API is used to download users data in a Pdf file
+   * Exports the list of users to a PDF file. This method generates a PDF document containing the
+   * user's data and sends it as a response. Access to this endpoint is restricted to users with the
+   * role of <b>ADMINS</b>.
    *
-   * @param response to set content type and headed value
-   * @throws IOException to handle Input/Output exceptions
+   * @param response The {@link HttpServletResponse} object used to write the PDF content to the
+   *     HTTP response.
+   * @param role The role of the requesting user, provided in the request header.
+   * @throws IOException If an input or output exception occurs while processing the PDF export.
    */
   @Operation(
       summary = "Export user's data in Pdf",
@@ -510,11 +545,14 @@ public class UserServiceController {
   }
 
   /**
-   * This method is used to display the page details on response
+   * Adds pagination metadata and navigational links to the collection of user responses.
    *
-   * @param users the list of users
-   * @param page the page
-   * @return the page details
+   * @param users the list of user response objects to be included in the collection
+   * @param page the page object containing pagination information such as page number, size, and
+   *     total counts
+   * @param searchKey the search key used to filter the user results
+   * @return a collection model of user response objects, enriched with pagination metadata and
+   *     navigational links for self, first, previous, next, and last pages
    */
   private CollectionModel<UserDTOResponse> addPageMetadata(
       List<UserDTOResponse> users, Page<UserDTOResponse> page, String searchKey) {

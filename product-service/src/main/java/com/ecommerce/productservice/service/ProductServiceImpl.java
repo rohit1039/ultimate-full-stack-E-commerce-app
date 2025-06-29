@@ -45,6 +45,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Implementation of the {@link ProductService} interface. This class provides the necessary methods
+ * to manage products in the system, such as creating, retrieving, updating, and deleting products.
+ * It also facilitates caching and database operations along with additional utility operations for
+ * managing product counts.
+ *
+ * <p>Dependencies: - LOGGER: Logger for logging information related to product service operations.
+ * - productRepository: Repository for database interactions with product records. - restTemplate:
+ * Used for making HTTP requests. - mongoTemplate: Template for operations with MongoDB. -
+ * redisTemplate: Template for operations with Redis cache. - modelMapper: Mapper tool to convert
+ * between entity and DTO objects. - mongoSequenceGenerator: Utility for generating unique sequence
+ * IDs in MongoDB.
+ */
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
@@ -64,12 +77,17 @@ public class ProductServiceImpl implements ProductService {
   private final MongoSequenceGenerator mongoSequenceGenerator;
 
   /**
-   * This method is used to save the list of products to the database.
+   * Saves a product to the database after performing validations and mapping the given product
+   * data. If the product is valid and unique, it is persisted in the database, and cached.
    *
-   * @param productRequest The product to be saved.
-   * @param categoryId The id of the category to which the products belong.
-   * @param username The username of the user.
-   * @return The list of products saved to the database.
+   * @param productRequest Details of the product to be saved, encapsulated in a ProductRequestDTO
+   *     object.
+   * @param categoryId The unique identifier of the category to which the product belongs.
+   * @param username The username of the user performing the operation.
+   * @param role The role of the user; must be "ROLE_ADMIN" to successfully save the product.
+   * @return A ProductResponseDTO containing details of the saved product.
+   * @throws UnAuthorizedException If the user's role is not "ROLE_ADMIN".
+   * @throws DuplicateProductException If a product with the same name already exists.
    */
   @Override
   @Caching(
@@ -140,10 +158,13 @@ public class ProductServiceImpl implements ProductService {
   }
 
   /**
-   * This method is used to get a product by its id.
+   * Retrieves a product by its unique identifier. If the product is not found in the cache, it
+   * fetches the product from the database. The product must be enabled to be returned. If no
+   * product exists with the given identifier, a {@link ProductNotFoundException} is thrown.
    *
-   * @param productId The id of the product to be retrieved.
-   * @return The product with the given id.
+   * @param productId the unique identifier of the product to retrieve
+   * @return a {@link ProductResponseDTO} containing the details of the product
+   * @throws ProductNotFoundException if no enabled product is found with the specified ID
    */
   @Override
   @Cacheable(value = CACHE_NAME, key = "#productId")
@@ -160,14 +181,14 @@ public class ProductServiceImpl implements ProductService {
   }
 
   /**
-   * This method is used to get a list of products based on the category id.
+   * Retrieves a paginated list of products that belong to the specified category.
    *
-   * @param categoryId The id of the category.
-   * @param pageNumber The page number.
-   * @param pageSize The page size.
-   * @param searchKey keyword to search products.
-   * @param role of the user.
-   * @return The page of products.
+   * @param categoryId the unique identifier of the category for which products need to be fetched
+   * @param pageNumber the page number to retrieve (1-based index)
+   * @param pageSize the number of products per page
+   * @param searchKey an optional search query to filter products by name or other attributes
+   * @param role the role of the user making the request, which may influence visible products
+   * @return a paginated list of products matching the specified category and search criteria
    */
   @Override
   @Cacheable(
@@ -185,33 +206,37 @@ public class ProductServiceImpl implements ProductService {
   }
 
   /**
-   * This method is used to get all the products.
+   * Retrieves a paginated list of products based on the provided page number, page size, and
+   * optional search key. The result is cached unless the resulting page is empty.
    *
-   * @param pageNumber The page number.
-   * @param pageSize The page size.
-   * @param searchKey keyword to search products
-   * @return The page of products.
+   * @param pageNumber the number of the page to retrieve, starting from 1
+   * @param pageSize the size of the page to retrieve (number of items per page)
+   * @param searchKey an optional search keyword to filter products; can be null or empty
+   * @return a {@code Page} containing the list of {@code ProductResponseDTO} matching the criteria,
+   *     or an empty page if no products match
    */
   @Override
   @Cacheable(
       value = CACHE_NAME,
       key = "{#pageNumber, #pageSize, #searchKey}",
       unless = "#result.getContent" + "().size()==0")
-  public Page<ProductResponseDTO> getAllProducts(
-      int pageNumber, int pageSize, String searchKey) {
+  public Page<ProductResponseDTO> getAllProducts(int pageNumber, int pageSize, String searchKey) {
     // create a pageable object with the given page number and page size
     Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
     return getPageOfFilteredProducts(0, pageable, searchKey, null);
   }
 
   /**
-   * This method is used to update the existing product
+   * Updates an existing product by its ID. This method allows updating product details such as
+   * color, images, sizes, name, brand, descriptions, discount, price, and other related
+   * information. Note that only users with the 'ADMIN' role are permitted to perform this action.
    *
-   * @param productId id of the product
-   * @param productRequestDTO product to update
-   * @param username username
-   * @param role user role
-   * @return updated product response
+   * @param productId The unique identifier of the product to be updated.
+   * @param productRequestDTO An object containing the updated product details.
+   * @param username The username of the person performing the update operation.
+   * @param role The role of the user attempting to update the product; must be 'ADMIN'.
+   * @return A ProductResponseDTO object containing the updated product details.
+   * @throws UnAuthorizedException if the user is not authorized to update the product.
    */
   @Override
   @Caching(evict = {@CacheEvict(value = CACHE_NAME, key = "#productId", allEntries = true)})
@@ -259,10 +284,13 @@ public class ProductServiceImpl implements ProductService {
   }
 
   /**
-   * Soft delete a product with given Id
+   * Deletes a product by its ID. The product is marked as disabled in the database. Only users with
+   * the "ROLE_ADMIN" role are authorized to perform this operation.
    *
-   * @param productId id of the product
-   * @param role role of the user
+   * @param productId the ID of the product to be deleted
+   * @param role the role of the user attempting the delete operation, must be "ROLE_ADMIN" to
+   *     authorize deletion
+   * @throws UnAuthorizedException if the user does not have the "ROLE_ADMIN" privilege
    */
   @Override
   @Caching(evict = {@CacheEvict(value = CACHE_NAME, key = "#productId", allEntries = true)})
@@ -289,9 +317,15 @@ public class ProductServiceImpl implements ProductService {
   }
 
   /**
-   * This method is used to reduce the quantity of a product.
+   * Reduces product count by updating the reserved quantities for each product size in the
+   * inventory. This method first deduplicates the list of products, aggregates the quantities for
+   * the same product IDs and sizes, and then updates the reserved quantities in the database. It
+   * ensures stock availability and throws an exception if requested quantities exceed available
+   * stock.
    *
-   * @param products list of products
+   * @param products a list of {@code OrderProductDTO} objects representing the ordered products
+   *     with their respective IDs, sizes, and quantities. The list may contain duplicates which
+   *     will be aggregated within the method.
    */
   @Override
   @Caching(evict = {@CacheEvict(value = CACHE_NAME, key = "#productId", allEntries = true)})
@@ -364,9 +398,11 @@ public class ProductServiceImpl implements ProductService {
   }
 
   /**
-   * This method is used to find the products that are enabled
+   * Retrieves a list of products eligible for export. Products are filtered to include only those
+   * that are enabled. The filtered products are then mapped to a list of ProductResponseDTO
+   * objects.
    *
-   * @return list of products to export
+   * @return a list of ProductResponseDTO representing the enabled products eligible for export
    */
   @Override
   public List<ProductResponseDTO> findProductsToExport() {
@@ -378,11 +414,11 @@ public class ProductServiceImpl implements ProductService {
   }
 
   /**
-   * This method is used to check if a product with a particular name exists in the database and is
-   * enabled.
+   * Checks if a product with the given name is unique by verifying if no enabled products exist
+   * with the specified name in the repository.
    *
-   * @param productName The name of the product.
-   * @return True if the product does not exist, false otherwise.
+   * @param productName the name of the product to be checked for uniqueness
+   * @return true if no enabled products with the given name exist, false otherwise
    */
   private boolean productIsUnique(String productName) {
     // get the products with the given product name
@@ -394,6 +430,21 @@ public class ProductServiceImpl implements ProductService {
     return products.isEmpty();
   }
 
+  /**
+   * Retrieves a pageable list of filtered products based on the provided category, search key, and
+   * role.
+   *
+   * @param categoryId the ID of the category to filter products by. If 0, retrieves products across
+   *     all categories.
+   * @param pageable the Pageable object containing pagination information such as page number and
+   *     size.
+   * @param searchKey the search string used to filter products based on their attributes such as
+   *     product name, brand, description, or color.
+   * @param role the role of the user (e.g., "ROLE_ADMIN"), which determines if non-enabled products
+   *     are included in the results.
+   * @return a Page object containing a list of ProductResponseDTO objects that match the filtering
+   *     criteria, along with pagination metadata.
+   */
   public Page<ProductResponseDTO> getPageOfFilteredProducts(
       Integer categoryId, Pageable pageable, String searchKey, String role) {
 
@@ -464,6 +515,14 @@ public class ProductServiceImpl implements ProductService {
     return new PageImpl<>(page.getContent(), pageable, page.getTotalElements());
   }
 
+  /**
+   * Releases reserved quantities of products based on the provided list of products. The method
+   * updates the reserve counts for each product and size combination by decreasing the reserved
+   * quantity.
+   *
+   * @param products a list of {@code OrderProductDTO} objects containing product IDs, sizes, and
+   *     quantities to be released.
+   */
   public void releaseReservedProductCount(List<OrderProductDTO> products) {
 
     products.forEach(
@@ -507,6 +566,15 @@ public class ProductServiceImpl implements ProductService {
         });
   }
 
+  /**
+   * Confirms the product count for the given list of products by checking reserved quantities,
+   * updating stock levels, and ensuring consistency for each specified product size.
+   *
+   * @param products a list of {@code OrderProductDTO} objects, where each object contains details
+   *     about the product including its ID, size, and the quantity to confirm. The method processes
+   *     this list to check stock availability and then updates the product's reserved and available
+   *     quantities.
+   */
   @Override
   public void confirmProductCount(List<OrderProductDTO> products) {
 

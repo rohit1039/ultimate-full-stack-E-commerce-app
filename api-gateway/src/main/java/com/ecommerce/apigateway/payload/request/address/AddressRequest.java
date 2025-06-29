@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.payload.request.address;
+package com.ecommerce.apigateway.payload.request.address;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -9,9 +9,9 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import io.vertx.core.json.JsonObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,23 +25,40 @@ import lombok.ToString;
 public class AddressRequest {
 
   @NotNull
+  @Schema(example = "Test")
   private String firstName;
+
   @NotNull
+  @Schema(example = "User")
   private String lastName;
+
   @NotNull
+  @Schema(example = "Plot 5, Tech Park")
   private String addressLine1;
+
+  @Schema(example = "HOME")
   private AddressType addressType;
+
+  @Schema(example = "Near InfoCity")
   private String addressLine2;
+
   @NotNull
+  @Schema(example = "Bhubaneswar")
   private String cityName;
+
+  @Schema(example = "Kendujhar")
   private String district;
+
   @NotNull
+  @Schema(example = "Odisha")
   private String stateName;
+
   @NotNull
+  @Schema(example = "758015")
   private Long postalCode;
-  @NotNull
-  private String phoneNumber;
-  private String username;
+
+  @NotNull @JsonIgnore private String phoneNumber;
+  @JsonIgnore private String username;
 
   @JsonInclude(value = JsonInclude.Include.NON_NULL)
   @JsonFormat(pattern = "dd/MM/yyyy hh:mm:ss a")
@@ -56,9 +73,4 @@ public class AddressRequest {
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
   @JsonIgnore
   private LocalDateTime lastUpdatedAddressDate;
-
-  public JsonObject toJsonObject(AddressRequest addressRequest) {
-
-    return JsonObject.mapFrom(addressRequest);
-  }
 }

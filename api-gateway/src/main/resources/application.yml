@@ -40,7 +40,7 @@ spring:
         - id: cart-service
           uri: lb://cart-service
           predicates:
-            - Path=/carts/**
+            - Path=/cart/**
         - id: payment-service
           uri: lb://payment-service
           predicates:
@@ -91,7 +91,7 @@ springdoc:
       name: Payment Service
       primaryName: Payment Service
     urls[5]:
-      url: /carts/v3/api-docs
+      url: /cart/v3/api-docs
       name: Cart Service
       primaryName: Cart Service
   enable-native-support: true

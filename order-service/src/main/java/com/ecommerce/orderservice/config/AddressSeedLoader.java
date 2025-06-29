@@ -14,11 +14,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 
+/**
+ * The AddressSeedLoader class is responsible for seeding address metadata into a MongoDB
+ * collection. It reads data from a CSV file, transforms it into JSON objects, and inserts
+ * them into a specified collection in the database.
+ *
+ * This class implements the CommandLineRunner interface, meaning it executes its logic
+ * when the application starts running in a command-line environment.
+ */
 public class AddressSeedLoader implements CommandLineRunner {
 
   private static final Logger LOG = LoggerFactory.getLogger(AddressSeedLoader.class.getName());
   private final MongoClient mongoClient = ConfigLoader.mongoConfig();
   private static final String COLLECTION = "pincode_data";
+
+  /**
+   * Reads user address metadata from a CSV file, transforms each record into a JSON object,
+   * and inserts them into a MongoDB collection. If the collection already contains data, it skips the import.
+   *
+   * @param args Optional command-line arguments. Not used in the current implementation.
+   */
   @Override
   public void run(String... args) {
 
@@ -40,7 +55,7 @@ public class AddressSeedLoader implements CommandLineRunner {
     } catch (IOException e) {
       LOG.error("Failed to load CSV: {}", e.getMessage());
     }
-    // Insert documents one by one
+
     mongoClient.rxFind(COLLECTION, new JsonObject())
         .flatMap(existing -> {
           if (existing.isEmpty()) {

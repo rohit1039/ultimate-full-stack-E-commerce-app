@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -46,7 +48,7 @@ public class Category {
   @OrderBy("categoryName asc")
   @JsonManagedReference
   @JsonIgnore
-  private List<Category> children = new ArrayList<>();
+  private Set<Category> children = new HashSet<>();
 
   @Transient
   @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = CategoryFilter.class)

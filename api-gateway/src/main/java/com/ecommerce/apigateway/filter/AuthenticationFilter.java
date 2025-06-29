@@ -17,6 +17,13 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+/**
+ * The AuthenticationFilter class implements the {@link WebFilter} interface and provides
+ * functionality for processing and validating JWT tokens for incoming requests in a reactive web
+ * environment. It intercepts web requests, extracts the JWT token from the Authorization header,
+ * validates the token, and sets the security context with the authenticated user's information.
+ * This filter also enriches the request with user-specific details.
+ */
 @Component
 public class AuthenticationFilter implements WebFilter {
 

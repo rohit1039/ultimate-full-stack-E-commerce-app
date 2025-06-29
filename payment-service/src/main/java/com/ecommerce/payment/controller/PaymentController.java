@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * PaymentController handles API endpoints related to the payment processes. It provides
+ * functionality to initiate a payment checkout and retrieve the status of a payment.
+ */
 @RestController
 @RequestMapping("/payments")
 public class PaymentController {
@@ -32,6 +36,20 @@ public class PaymentController {
 
   @Autowired private PaymentRepository paymentRepository;
 
+  /**
+   * Processes the checkout of products for a given order ID by initiating a payment process. This
+   * method uses the payment details provided and communicates with the payment service to create a
+   * payment transaction.
+   *
+   * @param orderId the unique identifier of the order for which the checkout is being performed
+   * @param fullName the full name of the customer provided in the request header
+   * @param username the username of the customer provided in the request header
+   * @param contactNumber the contact number of the customer provided in the request header
+   * @param paymentRequest the payment details including amount and other necessary information
+   * @return a ResponseEntity containing the payment response with details such as payment status
+   *     and payment link information
+   * @throws RazorpayException if there is an issue processing the payment with Razorpay
+   */
   @PostMapping("/checkout/{orderId}")
   public ResponseEntity<PaymentResponse> checkoutProducts(
       @PathVariable String orderId,
@@ -48,6 +66,12 @@ public class PaymentController {
     return ResponseEntity.status(HttpStatus.OK).body(paymentResponse);
   }
 
+  /**
+   * Retrieves the payment status for a given order ID.
+   *
+   * @param orderId the unique identifier of the order whose payment status is to be fetched
+   * @return a ResponseEntity containing the payment status as a string
+   */
   @GetMapping("/status/{orderId}")
   public ResponseEntity<String> getPaymentStatus(@PathVariable String orderId) {
 

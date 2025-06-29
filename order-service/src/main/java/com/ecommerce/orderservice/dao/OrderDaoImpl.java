@@ -20,6 +20,7 @@ import static com.ecommerce.orderservice.constant.ApiConstants.PRODUCT_ORDER_END
 import static com.ecommerce.orderservice.constant.ApiConstants.SET;
 import static com.ecommerce.orderservice.constant.ApiConstants.SUCCESS_STATUS_CODE;
 
+import com.ecommerce.orderservice.exception.ClientInputException;
 import com.ecommerce.orderservice.payload.request.address.AddressRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderItemRequest;
 import com.ecommerce.orderservice.payload.request.order.OrderRequest;
@@ -58,6 +59,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Implementation of the OrderDao interface responsible for handling
+ * database operations related to orders.
+ */
 public class OrderDaoImpl implements OrderDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(OrderDaoImpl.class.getName());
@@ -69,11 +74,14 @@ public class OrderDaoImpl implements OrderDao {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
-   * Saves an order in the database.
+   * Saves an order into the database and processes the related payment.
    *
-   * @param mongoClient the MongoDB client
-   * @param orderRequest the order request containing details of the order to be saved
-   * @return a Future that will complete with the order response
+   * @param mongoClient the MongoClient instance used for database operations
+   * @param orderRequest the details of the order to be saved
+   * @param username the username of the customer placing the order
+   * @param contactNumber the contact number of the customer placing the order
+   * @param token the authentication token for payment processing
+   * @return a future object containing the OrderResponse after successfully saving the order
    */
   @Override
   public Future<OrderResponse> saveOrder(MongoClient mongoClient, OrderRequest orderRequest,
@@ -88,8 +96,8 @@ public class OrderDaoImpl implements OrderDao {
     return isValidAddress(mongoClient, address.getPostalCode(), address.getDistrict(), address.getStateName())
         .flatMap(valid -> {
           if (!valid) {
-            return Future.failedFuture("Invalid address: "
-                + "Pin does not match with district or state");
+            return Future.failedFuture(new ClientInputException("Invalid address: "
+                + "Pin does not match with district or state"));
           }
           List<OrderItemRequest> orderItems = orderRequest.getOrderItems();
           return SingleHelper.toFuture(
@@ -188,10 +196,12 @@ public class OrderDaoImpl implements OrderDao {
   }
 
   /**
-   * Retrieves all orders from the database.
+   * Retrieves a list of all orders from the MongoDB collection and enriches each order
+   * with product details by fetching data using associated product IDs.
    *
-   * @param mongoClient the MongoDB client
-   * @return a Future that will complete with a list of order response objects
+   * @param mongoClient the MongoClient instance used for database operations
+   * @return a Future containing a list of OrderResponseList objects, representing all
+   *         retrieved and processed orders
    */
   @Override
   public Future<List<OrderResponseList>> getAllOrders(MongoClient mongoClient) {
@@ -261,11 +271,12 @@ public class OrderDaoImpl implements OrderDao {
   }
 
   /**
-   * Retrieves orders by username.
+   * Fetches all orders placed by a specific user identified by the username.
    *
-   * @param mongoClient the MongoDB client
-   * @param username the username whose orders need to be fetched
-   * @return a Future that will complete with a list of order response objects
+   * @param mongoClient the MongoDB client used to interact with the database
+   * @param username the username of the user whose orders need to be retrieved
+   * @return a Future containing a list of OrderResponseList objects representing
+   *         the user's orders with detailed information including order items and products
    */
   @Override
   public Future<List<OrderResponseList>> getOrdersByUsername(MongoClient mongoClient,
@@ -336,12 +347,13 @@ public class OrderDaoImpl implements OrderDao {
   }
 
   /**
-   * Update order by orderId.
+   * Updates the status of an existing order in the database.
    *
-   * @param mongoClient the MongoDB client
-   * @param orderId id of the order to update
-   * @param orderStatus the updated order status value
-   * @return a Future that will complete with the order response
+   * @param mongoClient the MongoClient instance used for database operations.
+   * @param orderId the unique identifier of the order to be updated.
+   * @param orderStatus the new status to be set for the order.
+   * @return a Future containing an OrderResponse object with the updated order details,
+   *         or an error if the update fails or the order is not found in the database.
    */
   @Override
   public Future<OrderResponse> updateOrder(MongoClient mongoClient, String orderId,
@@ -380,6 +392,18 @@ public class OrderDaoImpl implements OrderDao {
     return promise.future();
   }
 
+  /**
+   * Updates the order statistics for a specific order in the database.
+   * The method updates the order's payment status, payment method, and order status
+   * based on the information provided and fetches the updated order details.
+   *
+   * @param mongoClient an instance of {@link MongoClient} for interacting with the MongoDB database.
+   * @param orderId the unique identifier of the order that needs to be updated.
+   * @param paymentStatus the payment status string representing the current state of the payment
+   *                      (e.g., SUCCESS, FAILED).
+   * @param paymentMethod the payment method used for the order, such as Credit Card, PayPal, etc.
+   * @return a {@link Future} containing the updated {@link OrderResponse} with the latest order details.
+   */
   @Override
   public Future<OrderResponse> updateOrderStats(MongoClient mongoClient, String orderId,
                                                 String paymentStatus, String paymentMethod) {
@@ -425,10 +449,12 @@ public class OrderDaoImpl implements OrderDao {
   }
 
   /**
-   * Calls the product service to validate the order items.
+   * Validates a list of order items by invoking the product-service.
+   * Ensures that the provided order items meet the necessary criteria.
    *
-   * @param orderItems the list of order items
-   * @return a Future that will complete with the list of successfully validated order items
+   * @param orderItems the list of {@link OrderItemRequest} to be validated
+   * @return a {@link Future} containing the validated list of {@link OrderItemRequest} if successful,
+   *         or a failure if validation fails
    */
   private Future<List<OrderItemRequest>> validateProducts(List<OrderItemRequest> orderItems) {
 
@@ -450,6 +476,18 @@ public class OrderDaoImpl implements OrderDao {
     return promise.future();
   }
 
+  /**
+   * Processes a payment for a specific order by communicating with the payment service.
+   * Sends a payment request to the payment service and retrieves a payment response.
+   * If the payment is successful, the future is completed with the payment response,
+   * otherwise, it fails with the appropriate error details.
+   *
+   * @param orderId the unique identifier of the order for which payment is to be processed
+   * @param paymentRequest the payment request containing details such as the total amount and payment date
+   * @param token the authorization token used for accessing the payment service
+   * @return a future representing the asynchronous result of the payment processing;
+   *         contains a {@link PaymentResponse} if successful, otherwise the future fails
+   */
   private Future<PaymentResponse> processPayment(String orderId, PaymentRequest paymentRequest, String token) {
 
     Promise<PaymentResponse> promise = Promise.promise();
@@ -473,10 +511,13 @@ public class OrderDaoImpl implements OrderDao {
   }
 
   /**
-   * Fetch latest payment status from payment DB
-   * @param orderId - fetch payment status by orderId
-   * @param token - JWT
-   * @return paymentResponse with updated status
+   * Fetches the payment status for a specific order from the payment service
+   * and logs the result. If successful, it resolves with the payment status.
+   * Otherwise, it resolves with an appropriate failure message in case of an error.
+   *
+   * @param orderId The unique identifier of the order whose payment status needs to be fetched.
+   * @param token The authorization token required to access the payment service.
+   * @return A Future that resolves with the payment status on success, or an error message on failure.
    */
   private Future<String> fetchPaymentStatusFromDb(String orderId, String token) {
     Promise<String> promise = Promise.promise();
@@ -498,20 +539,11 @@ public class OrderDaoImpl implements OrderDao {
   }
 
   /**
-   * Asynchronously fetches a list of products by their IDs.
+   * Fetches product details for the given list of product IDs by making calls to an external service.
    *
-   * <p>This method performs the following steps:
-   * <ul>
-   *   <li>Iterates over the provided product IDs.</li>
-   *   <li>For each product ID, sends an asynchronous HTTP GET request to fetch the product details.
-   *   </li>
-   *   <li>Handles the response and maps it to {@link ProductResponse} objects.</li>
-   *   <li>Combines all individual product fetch results into a single list.</li>
-   * </ul>
-   *
-   * @param productIds a list of product IDs to fetch details for.
-   * @return a {@link Future} that completes with a list of {@link ProductResponse}
-   * objects when all product fetches succeed, or fails if any of the fetches fail.
+   * @param productIds a list of product IDs for which the product details need to be fetched
+   * @return a Future containing a list of {@link ProductResponse} objects representing the product details
+   *         for the requested product IDs; failure in fetching any ID results in a failed Future
    */
   private Future<List<ProductResponse>> findProductById(List<Integer> productIds) {
 
@@ -537,7 +569,13 @@ public class OrderDaoImpl implements OrderDao {
   }
 
   /**
-   * This is a helper method to convert Vert.x Future to Single
+   * Converts a {@code Future} into a {@code Single}. This method bridges Vert.x {@code Future}
+   * with RxJava {@code Single} for reactive programming.
+   *
+   * @param future the {@code Future} to be converted into a {@code Single}
+   * @param <T> the type of the result contained in the {@code Future} and {@code Single}
+   * @return a {@code Single} that represents the result of the given {@code Future},
+   *         emitting success when the future succeeds or an error when the future fails
    */
   public static <T> Single<T> toSingle(Future<T> future) {
     return Single.create(emitter ->
@@ -551,6 +589,15 @@ public class OrderDaoImpl implements OrderDao {
     );
   }
 
+  /**
+   * Validates whether the given address details (pincode, district, state) exist in the database.
+   *
+   * @param mongoClient the MongoClient instance to interact with the database
+   * @param pincode the postal code of the address to be validated
+   * @param district the district name of the address to be validated
+   * @param state the state name of the address to be validated
+   * @return a Future containing a Boolean value: true if the address is valid, or false otherwise
+   */
   public Future<Boolean> isValidAddress(MongoClient mongoClient, Long pincode,
                                String district, String state) {
 

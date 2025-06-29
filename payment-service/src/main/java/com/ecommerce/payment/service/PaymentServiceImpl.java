@@ -14,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service implementation for managing payment operations, including creating payment links and
+ * retrieving payment statuses.
+ */
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
@@ -25,6 +29,18 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Autowired private PaymentRepository paymentRepository;
 
+  /**
+   * Creates a payment link using Razorpay and initializes payment details for the specified order.
+   *
+   * @param orderId the unique identifier for the order
+   * @param fullName the full name of the customer
+   * @param contactNumber the contact number of the customer
+   * @param username the email/username of the customer
+   * @param paymentRequest the details of the payment, including the total amount to be paid
+   * @return a {@link PaymentResponse} containing the status of the payment, the payment link ID,
+   *     and the payment link URL
+   * @throws RazorpayException if an error occurs when interacting with Razorpay
+   */
   public PaymentResponse checkoutProducts(
       String orderId,
       String fullName,
@@ -68,6 +84,15 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentStatus.PENDING.name(), paymentLink.get("id"), paymentLink.get("short_url"));
   }
 
+  /**
+   * Retrieves the payment status for a given order ID.
+   *
+   * @param orderId the unique identifier of the order for which the payment status is to be
+   *     retrieved
+   * @return a string representing the payment status of the specified order, such as "PENDING",
+   *     "SUCCESS", or "FAILED"
+   * @throws RuntimeException if no payment record is found corresponding to the given order ID
+   */
   @Override
   public String getPaymentStatus(String orderId) {
 

@@ -1,5 +1,6 @@
 package com.ecommerce.apigateway;
 
+import com.ecommerce.apigateway.exception.WebClientErrorHandler;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,9 +23,8 @@ public class ApiGatewayApplication {
 
   @Bean
   @LoadBalanced
-  public WebClient.Builder webClient() {
-
-    return WebClient.builder();
+  public WebClient.Builder webClientBuilder() {
+    return WebClient.builder().filter(WebClientErrorHandler.errorHandlingFilter());
   }
 
   @Bean
