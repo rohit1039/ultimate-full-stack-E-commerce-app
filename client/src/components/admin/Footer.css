@@ -1,0 +1,38 @@
+/* .footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  font-size: 14px;
+  background-color: #fff;
+  color: #999;
+  border-top: 1px solid #eee;
+}
+
+.footer-left span {
+  margin-right: 15px;
+}
+
+.footer-left a {
+  margin-right: 15px;
+  color: #999;
+  text-decoration: none;
+}
+
+.footer-left a:hover {
+  text-decoration: underline;
+}
+
+.footer-right {
+  margin-left: 15px;
+  color: #ccc;
+  cursor: pointer;
+  display: flex;
+  gap: 1.5rem;
+  font-size: 22px;
+  transition: color 0.2s ease-in-out;
+}
+
+.footer-right svg:hover {
+  color: #666;
+} */

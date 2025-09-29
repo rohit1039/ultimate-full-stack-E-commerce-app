@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**
- * Controller responsible for user authentication-related operations such as registration, login,
+ * Controller responsible for user-authentication-related operations such as registration, login,
  * and password reset.
  *
  * <p>This class contains endpoints that are used to perform authentication functionalities for

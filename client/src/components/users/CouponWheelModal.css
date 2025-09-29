@@ -1,0 +1,127 @@
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Modal box */
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  width: 450px;
+  height: 525px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  position: relative;
+}
+
+.modal h5 {
+  margin-top: 1.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  cursor: pointer;
+}
+
+/* Wheel container */
+.wheel-container {
+  position: relative;
+  margin: 40px auto 20px auto;
+  width: 280px;
+  height: 280px;
+}
+
+.wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 6px solid #444;
+  position: relative;
+  overflow: hidden;
+  margin-top: 1.75rem;
+}
+
+.slice {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  top: 50%;
+  left: 50%;
+  transform-origin: 0% 0%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+  border: 1px solid #fff;
+}
+
+/* Text inside slice */
+.slice-text {
+  transform: rotate(45deg); /* adjust if needed */
+  text-align: right;
+  width: 100px;
+  margin-top: -2.5rem;
+  margin-right: 1rem;
+}
+
+/* Pointer */
+.pointer {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 28px;
+  color: red;
+  z-index: 10;
+}
+
+/* Buttons */
+.spin-btn {
+  padding: 10px 18px;
+  background: #0083db;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.spin-btn:hover {
+  background: #006bb5;
+}
+
+.result {
+  margin-top: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  color: green;
+}
+
+.confetti-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+  z-index: 9999;
+}

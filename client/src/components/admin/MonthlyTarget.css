@@ -1,0 +1,82 @@
+.monthly-target-card {
+  background-color: #fafafa;
+  border-radius: 16px;
+  padding: 20px;
+  height: 25.25rem;
+  width: 15.25%;
+  text-align: center;
+}
+
+.monthly-target-card-dark {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  height: 25.25rem;
+  width: 15.25%;
+  text-align: center;
+}
+
+.widget-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+
+.half-gauge {
+  position: relative;
+  width: 160px;
+  height: 90px;
+  margin: 0 auto 12px;
+}
+
+.half-chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* Background Arc */
+.half-bg {
+  fill: none;
+  stroke: #ffe0c3;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+.half-progress {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1.5s ease-out;
+}
+
+.progress-subtext {
+  font-size: 14px;
+  line-height: 1.5rem;
+  margin-top: 1rem;
+}
+
+.progress-status{
+  margin-top: 1rem;
+}
+
+.half-text {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.target-info {
+  margin-top: 1rem;
+}
+.achieved {
+  color: #4caf50;
+  margin-top: 1rem;
+}
+
+.achieved-number {
+  color: #ff8201;
+}

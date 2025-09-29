@@ -1,0 +1,69 @@
+.activity-feed {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  height: 100%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+}
+
+.activity-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.activity-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.bullet {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #0083db;
+  margin-top: 6px;
+  margin-right: 12px;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.message {
+  margin: 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+/* Dark mode */
+.dark-mode .activity-feed {
+  background-color: #1e1e1e;
+}
+
+.dark-mode .activity-title,
+.dark-mode .message,
+.dark-mode .timestamp {
+  color: #ddd;
+}
+
+.dark-mode .bullet {
+  background-color: #4aa8ff;
+}

@@ -1,0 +1,66 @@
+.conversion-rate {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  height: 100%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.conversion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.conversion-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.conversion-change {
+  font-size: 13px;
+  color: #27ae60;
+  font-weight: 500;
+}
+
+.conversion-sub {
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+.chart-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.conversion-percent {
+  position: absolute;
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff7d47;
+}
+
+/* Dark Mode */
+.dark-mode .conversion-rate {
+  background-color: #1e1e1e;
+}
+
+.dark-mode .conversion-header h2,
+.dark-mode .conversion-percent {
+  color: #fff;
+}
+
+.dark-mode .conversion-change {
+  color: #66dd88;
+}
+
+.dark-mode .conversion-sub {
+  color: #aaa;
+}

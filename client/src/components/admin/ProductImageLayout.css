@@ -1,0 +1,56 @@
+/* Layout Dropdown */
+.layout-dropdown-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  margin: 3rem 0 1rem 4rem;
+  z-index: 10;
+}
+
+.layout-dropdown-wrapper label {
+  font-size: 14px;
+  color: #333;
+}
+
+.layout-dropdown {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.layout-dropdown:hover {
+  border-color: #666;
+}
+
+/* Image Grid Layouts */
+.image-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.grid-2x2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3x3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-item .custom-zoom {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* One by One Layout */
+.one-by-one-layout {
+  display: flex;
+  gap: 3rem;
+  margin-top: 2rem;
+}

@@ -1,0 +1,74 @@
+.traffic-sources {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  height: 100%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.traffic-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  margin-bottom: 16px;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.bar-container {
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 6px;
+}
+
+.percentage {
+  font-size: 12px;
+  color: #666;
+  float: right;
+  margin-top: 4px;
+}
+
+/* Dark mode */
+.dark-mode .traffic-sources {
+  background-color: #1e1e1e;
+}
+
+.dark-mode .traffic-title,
+.dark-mode .label,
+.dark-mode .percentage {
+  color: #ccc;
+}
+
+.dark-mode .bar-container {
+  background-color: #333;
+}

@@ -1,0 +1,95 @@
+.main-content {
+  margin-left: 220px;
+  padding: 20px;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100vh;
+  background-color: #fafafa;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+.sidebar-dark {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100vh;
+  background-color: #1e1e1e;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+/* Header */
+.sidebar-header {
+  font-size: 25px;
+  font-weight: bold;
+  color: #ff8201;
+  text-align: center;
+  margin-top: 0.75rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Menu list */
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0 2rem;
+  flex-grow: 1; /* Take available space */
+}
+
+/* Menu items */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  color: grey;
+}
+
+.sidebar-item-dark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  color: white;
+}
+
+.sidebar-item:hover,
+.sidebar-item-dark:hover {
+  background-color: #ff8201;
+  color: #ffffff;
+}
+
+/* Icons */
+.sidebar-icon {
+  font-size: 16px;
+  transition: color 0.2s ease-in-out;
+  color: inherit;
+}
+
+/* Promo card container */
+.sidebar-promo {
+  margin-top: 1rem;
+}

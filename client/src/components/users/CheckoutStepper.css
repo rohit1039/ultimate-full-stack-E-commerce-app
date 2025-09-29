@@ -1,0 +1,54 @@
+.checkout-stepper {
+  display: flex;
+  align-items: center;    /* vertically center icons and lines */
+  width: 97%;
+  margin: 1.25rem 0rem 1.25rem 1.75rem;
+  padding: 1rem 0;
+}
+
+/* Step container: horizontal icon + label */
+.step {
+  display: flex;
+  align-items: center;    /* vertically center icon + label */
+  color: #ccc;
+  font-size: 14px;
+  position: relative;
+  flex-shrink: 0;         /* prevent step from shrinking */
+}
+
+/* Icon */
+.step-icon {
+  font-size: 18px;
+  margin-right: 6px;      /* spacing between icon and label */
+}
+
+/* Label */
+.step-label {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Connector line between steps */
+.step-line {
+  flex-grow: 1;           /* line stretches to fill space */
+  height: 1px;
+  background-color: #ccc;
+  margin: 0 10px;         /* spacing around line */
+  align-self: center;     /* vertically center line */
+}
+
+/* Status colors */
+.step.completed .step-label,
+.step.completed .step-icon {
+  color: #28a745;
+}
+
+.step.active .step-label,
+.step.active .step-icon {
+  color: #0083dd;
+  font-weight: bold;
+}
+
+.step.completed ~ .step-line {
+  background-color: #28a745;
+}

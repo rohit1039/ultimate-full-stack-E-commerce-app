@@ -1,0 +1,85 @@
+.stats-cards {
+  display: flex;
+  gap: 20px;
+  width: 65%;
+  height: 20%;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  width: 28rem;
+  background-color: #fafafa;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.stat-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stat-icon {
+  width: 70px;
+  height: 70px;
+  margin-left: 12rem;
+  margin-top: -3.5rem;
+  color: #ff8201;
+  position: absolute;
+}
+
+.stat-card:first-child {
+  background-color: #ffebd6;
+}
+
+.stat-card:first-child .stat-title {
+  color: #333;
+}
+.stat-card .stat-title {
+  color: #b2b2b2;
+}
+
+.stat-title {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 5px;
+  margin-top: 0;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 1rem;
+  color: #333;
+}
+
+.stat-change {
+  font-size: 14px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.stat-change.positive {
+  color: #27ae60;
+}
+
+.stat-change.negative {
+  color: #e74c3c;
+}
+
+/* Dark Mode Support */
+.dark-mode .stat-card {
+  background-color: #1e1e1e;
+  border-radius: 16px;
+}
+
+.dark-mode .stat-title:first-child {
+  color: #ffffff;
+}
+
+.dark-mode .stat-title,
+.dark-mode .stat-value {
+  color: #ffffff;
+}

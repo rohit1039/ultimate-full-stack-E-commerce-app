@@ -1,0 +1,65 @@
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: white;
+  transition: background-color 0.3s ease;
+}
+
+/* Main content area */
+.main-content {
+  padding: 15px 30px;
+  background-color: #ffff;
+  overflow: hidden;
+}
+
+/* Responsive grids */
+.stats-section {
+  display: flex;
+  gap: 0;
+  margin-bottom: 10px;
+}
+
+.target-revenue-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: -30.5rem;
+  gap: 1.25rem;
+  margin-bottom: 2.25rem;
+}
+
+.user-conversion-section {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.orders-activity-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.activity-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Dark Mode */
+.dark-mode {
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+.dark-mode .main-content {
+  background-color: #1a1a1a;
+}
+
+/* Scrollbar styling */
+.main-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}

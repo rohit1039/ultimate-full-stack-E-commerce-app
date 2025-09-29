@@ -1,0 +1,16 @@
+.breadcrumb-container {
+  background-color: #FAFAFA;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1.25rem 2rem -2rem 3rem;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.breadcrumb-separator {
+  margin: 0 6px;
+  color: #999;
+}
+

@@ -1,0 +1,289 @@
+.products {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  overflow: hidden;
+  margin-left: 0.85rem;
+  margin-top: 2rem;
+  gap: 2rem;
+  font-size: 13px;
+}
+
+.badge {
+  text-align: center;
+  font-size: 11px;
+  margin-top: -0.5rem;
+  border-radius: 5px;
+  width: 9vh;
+  padding: 0.125rem;
+  background-color: #f44336;
+  color: white;
+  position: absolute;
+  margin-left: 105px;
+  font-weight: bold;
+  letter-spacing: 0.7px;
+  animation: hang 3s ease-in-out infinite;
+  z-index: 1;
+}
+
+.card-container {
+  position: relative;
+  border-radius: 8px;
+  width: 200px;
+}
+
+.card-header {
+  position: relative;
+}
+
+.image-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.card-image {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+  border-radius: 8px;
+}
+
+.card-container:hover .image-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hover-button {
+  background: transparent;
+  color: white;
+  border: 1px solid white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.hover-button:hover {
+  background: white;
+  color: black;
+}
+
+.cart-icon .buy-icon {
+  margin-right: 8px;
+}
+
+.cart .buy {
+  font-size: 18px;
+}
+
+.product-desc-container {
+  width: 15rem;
+}
+
+.product-desc {
+  font-size: 13px;
+  color: #333;
+}
+
+.product-desc:hover {
+  color: #0083db;
+}
+
+.rating-review-container {
+  display: flex;
+  gap: 4.75rem;
+  align-items: center;
+  width: 18rem;
+}
+
+.rating-container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.review-count {
+  color: grey;
+  font-size: small;
+}
+
+.in-stock {
+  text-align: center;
+  margin-top: 0.25rem;
+  font-size: 11px;
+  border-radius: 3px;
+  width: 8vh;
+  padding: 0.125rem 0rem;
+  background-color: #00abe4;
+  color: white;
+  margin-left: -2.5rem;
+}
+
+.card-header {
+  background-color: #fafafa;
+  padding: 1rem 2rem 1rem 2rem;
+  border-radius: 8px;
+  width: 14vmax;
+  height: 33.75vh;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1.25rem;
+  margin-top: -1rem;
+  width: 8rem;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  margin-left: 0.25rem;
+}
+
+.price-container {
+  margin: 1rem 0 1rem 0rem;
+}
+
+.price-after-discount {
+  color: #0083db;
+}
+
+.final-price {
+  color: #0083db;
+}
+
+.original-price {
+  color: grey;
+  font-size: 1rem;
+  margin: -1rem 0 0 1rem;
+}
+
+@media (max-width: 768px) {
+  .products {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    width: 8vh;
+    margin-left: 100px;
+  }
+
+  .product-desc-container {
+    width: 12rem;
+  }
+
+  .rating-review-container {
+    gap: 2rem;
+    width: 15rem;
+  }
+
+  .card-footer {
+    font-size: 1rem;
+    width: 7rem;
+  }
+
+  .in-stock {
+    font-size: 0.7rem;
+    width: 7.5vh;
+    margin-left: -1rem;
+  }
+
+  .price-container {
+    margin: 0.75rem 0;
+  }
+
+  .original-price {
+    font-size: 0.7rem;
+    margin: -0.75rem 0 0 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .products {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card-container {
+    height: 100%;
+  }
+
+  .image-wrapper {
+    width: 100%;
+    height: auto;
+  }
+
+  .badge {
+    font-size: 0.6rem;
+    width: 7vh;
+    margin-left: 90px;
+  }
+
+  .hover-button {
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .product-desc-container {
+    width: 100%;
+  }
+
+  .rating-review-container {
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .review-count {
+    font-size: 0.7rem;
+  }
+
+  .in-stock {
+    font-size: 0.65rem;
+    width: 6.5vh;
+    margin-left: 0;
+  }
+
+  .card-footer {
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  .price-container {
+    margin: 0.5rem 0;
+  }
+
+  .orginal-price {
+    font-size: 0.65rem;
+    margin: -0.5rem 0 0 0.5rem;
+  }
+}

@@ -1,0 +1,183 @@
+.payments-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  border-radius: 8px;
+}
+.payments-box {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  width: 100%;
+  max-width: 950px;
+  overflow: hidden;
+}
+.payments-header {
+  padding: 24px;
+  background: #0083db;
+  color: white;
+}
+.payments-header h4 {
+  margin: 0;
+}
+
+.payments-header p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+.payments-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  padding: 32px;
+}
+.card-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-inner {
+  width: 100%;
+  max-width: 360px;
+  height: 220px;
+  border-radius: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #0083db, #00b4a2);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-chip {
+  width: 40px;
+  height: 30px;
+  background: gold;
+  border-radius: 4px;
+}
+.card-number {
+  font-size: 1.4rem;
+  letter-spacing: 3px;
+  font-family: "Courier New", monospace;
+}
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+}
+.label {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+.value {
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+.payment-form form {
+  display: flex;
+  flex-direction: column;
+}
+.payment-form label {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #333;
+}
+.payment-form input {
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border 0.2s ease;
+}
+.payment-form input:focus {
+  border-color: #0083db;
+}
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+.payment-form button {
+  padding: 14px;
+  background: #0083db;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: auto;
+  display: block;
+  transition: 0.3s ease;
+}
+.payment-form button:hover {
+  opacity: 0.9;
+}
+.method-tabs {
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 1px solid #eee;
+  background: #f8f9fa;
+}
+.method-tabs button {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #555;
+  transition: background 0.2s ease;
+}
+.method-tabs button:hover {
+  background: #f1f1f1;
+}
+.method-tabs button.active {
+  border-bottom: 3px solid #0083db;
+  color: #0083db;
+  font-weight: 600;
+}
+
+/* Modal box */
+.payments-wrapper {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Smooth fade */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

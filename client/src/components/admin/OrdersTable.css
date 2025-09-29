@@ -1,0 +1,302 @@
+.recent-orders {
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1225px;
+  margin: auto;
+  margin-top: 10px;
+}
+
+.recent-orders-dark {
+  background: #1e1e1e;
+  padding: 20px;
+  color: #f0f0f0;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1225px;
+  margin: auto;
+  margin-left: 0;
+  margin-top: 10px;
+}
+
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.orders-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.orders-header input {
+  flex: 1;
+  margin-left: 33rem;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  min-width: 180px;
+  max-width: 360px;
+  width: 100%;
+  outline: none;
+}
+
+.category-btn {
+  background-color: #ff8201;
+  color: white;
+  margin-right: 0.15rem;
+  border: none;
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.orders-table {
+  width: 100%;
+  font-size: 14px;
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+}
+
+.orders-table-dark {
+  width: 100%;
+  font-size: 14px;
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+}
+
+.sort-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: #888;
+  padding: 0;
+  margin-left: 4px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.sort-btn:hover {
+  color: #000;
+}
+
+.orders-table th,
+.orders-table td {
+  font-weight: normal;
+  padding: 12px;
+  text-align: left;
+}
+
+.orders-table thead {
+  background-color: #ffebd6;
+}
+
+.orders-table tbody {
+  background-color: #ffffff;
+}
+
+.orders-table thead {
+  background-color: #ffebd6;
+}
+
+/* Light mode odd/even rows */
+.orders-table tbody tr:nth-child(odd) {
+  background-color: #ffffff; /* white */
+}
+
+.orders-table tbody tr:nth-child(even) {
+  background-color: #f7f7f7; /* light gray for contrast */
+}
+
+/* Light mode row hover */
+.orders-table tbody tr:hover {
+  background-color: #f0f0f0;
+}
+
+.orders-table-dark th,
+.orders-table-dark td {
+  font-weight: normal;
+  padding: 12px;
+  text-align: left;
+}
+
+.orders-table-dark tbody {
+  background-color: #1e1e1e;
+}
+
+/* Dark mode table header */
+.orders-table-dark thead {
+  background-color: #ff8201;
+  color: #ffffff;
+}
+
+/* Dark mode table body rows */
+.orders-table-dark tbody {
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+}
+
+.orders-table-dark tbody tr:nth-child(odd) {
+  background-color: #1e1e1e;
+}
+
+.orders-table-dark tbody tr:nth-child(even) {
+  background-color: #2a2a2a;
+}
+
+.orders-table-dark tbody tr:hover {
+  background-color: #333333;
+}
+
+.orders-header-dark {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.orders-header-dark h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.orders-header-dark input {
+  background-color: #2a2a2a;
+  color: #f0f0f0;
+  flex: 1;
+  margin-left: 33rem;
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  min-width: 180px;
+  max-width: 360px;
+  width: 100%;
+  outline: none;
+}
+
+.orders-header-dark input::placeholder {
+  color: #aaa;
+}
+
+.sort-btn-dark {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: #ffffff;
+  padding: 0;
+  margin-left: 4px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.product-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.product-img {
+  font-size: 20px;
+}
+
+.status {
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.status.shipped {
+  background-color: #e6f4ff;
+  color: #007fff;
+}
+
+.status.processing {
+  background-color: #fff3cd;
+  color: #ffc107;
+}
+
+.status.delivered {
+  background-color: #e6f7e6;
+  color: #28a745;
+}
+
+.status.pending {
+  background-color: #fde2e2;
+  color: #dc3545;
+}
+
+/* Pagination container */
+.pagination,
+.pagination-dark {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+}
+
+/* Common styles for all pagination buttons */
+.pagination button,
+.pagination-dark button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Light mode */
+.pagination button {
+  background: #f0f0f0;
+  color: #333;
+  margin-top: 1rem;
+  font-size: 14px;
+}
+.pagination button:hover:not(:disabled) {
+  background: #dcdcdc;
+}
+.pagination button.active {
+  background: #ff8201;
+  color: white;
+}
+.pagination button:disabled {
+  background: #e0e0e0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Dark mode */
+.pagination-dark button {
+  background: #333;
+  color: #f0f0f0;
+  margin-top: 1rem;
+}
+.pagination-dark button:hover:not(:disabled) {
+  background: #444;
+}
+.pagination-dark button.active {
+  background: #ff8201;
+  color: white;
+}
+.pagination-dark button:disabled {
+  background: #222;
+  color: #666;
+  cursor: not-allowed;
+}

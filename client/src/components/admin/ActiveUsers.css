@@ -1,0 +1,47 @@
+.active-users {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  height: 100%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.active-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.active-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.weekly-change {
+  font-size: 13px;
+  color: #27ae60;
+  font-weight: 500;
+}
+
+.active-count {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* Dark Mode */
+.dark-mode .active-users {
+  background-color: #1e1e1e;
+}
+
+.dark-mode .active-header h2,
+.dark-mode .active-count {
+  color: #fff;
+}
+
+.dark-mode .weekly-change {
+  color: #66dd88;
+}

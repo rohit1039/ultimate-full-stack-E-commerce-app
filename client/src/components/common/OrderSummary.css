@@ -1,0 +1,106 @@
+.cart-address-total {
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  border: 1px solid #e0e0e0;
+}
+
+.coupon-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  margin-bottom: 1.65rem;
+  flex-direction: column;
+}
+
+.icon-text-inline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.apply-coupon-txt {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.icon-txt-btn-wrapper {
+  display: flex;
+  gap: 15.75rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.coupon-icon {
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}
+
+.apply-coupon-btn {
+  border: 1px solid #0083db;
+  padding: 0.5rem;
+  background: transparent;
+  border-radius: 8px;
+  color: #0083db;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.apply-coupon-btn:hover {
+  background-color: #0083db;
+  color: #ffffff;
+}
+
+.offers-title {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.offers-icon {
+  vertical-align: middle;
+  margin-top: 5px;
+}
+
+.available-offers {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column;
+}
+
+.cart-total-label,
+.cart-total-value {
+  font-size: 13px;
+}
+
+/* Dropdown list animation */
+.offer-list {
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  padding-left: 0;
+  line-height: 1.585rem;
+}
+
+.change-pin {
+  font-size: 13px;
+}
+
+/* Offer list items */
+.offer-list li {
+  list-style: none;
+  font-size: 13px;
+}
+
+.offer-list li::before {
+  content: "✓";
+  margin-right: 0.5rem;
+  color: #0083db;
+  font-weight: bold;
+}

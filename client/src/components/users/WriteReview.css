@@ -1,0 +1,162 @@
+/* =========================
+   Modal Overlay & Content
+   ========================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: fadeInUp 0.35s ease-out;
+}
+
+/* =========================
+   Write Review Content
+   ========================= */
+.write-review {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.write-review h4 {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #0083db;
+}
+
+/* =========================
+   Rating Stars
+   ========================= */
+.rating-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.rating-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* =========================
+   Form Elements
+   ========================= */
+.feedback-textarea {
+  width: 100%;
+  max-width: 225px;
+}
+textarea {
+  width: 100%;
+  max-width: 250px;
+  min-height: 100px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  padding: 0.75rem;
+  font-size: 14px;
+  resize: none;
+  transition: border 0.2s ease;
+}
+
+textarea:focus {
+  border-color: #0083db;
+  outline: none;
+}
+
+.review-text-input {
+  width: 100%;
+  max-width: 25rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0.6rem;
+  color: #333;
+  font-size: 14px;
+  transition: border 0.2s ease;
+}
+
+.review-text-input:focus {
+  border-color: #0083db;
+  outline: none;
+}
+
+/* =========================
+   Submit Button
+   ========================= */
+.submit-review {
+  background-color: #009688;
+  color: #fff;
+  padding: 0.5rem 1.25rem;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+}
+
+.submit-review:hover {
+  background-color: #00796b;
+}
+/* =========================
+   Close Button
+   ========================= */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #444;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+/* =========================
+   Fade-in Animation
+   ========================= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   Responsive
+   ========================= */
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  .write-review h4 {
+    font-size: 1.25rem;
+  }
+
+  .submit-review {
+    width: 100%;
+  }
+}
