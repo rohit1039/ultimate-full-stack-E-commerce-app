@@ -30,7 +30,7 @@ This is a full-stack E-commerce application that is implemented with event-drive
 
 ## Architectural Diagram:
 
-<img src="images/full-stack-e-commerce-diagram.gif"  alt=""/>
+<img src="images/full-stack-ecommerce-app.gif"  alt=""/>
 
 ## 📦 Microservices Overview
 
